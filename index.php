@@ -332,7 +332,7 @@ function fsst_get_select_options($name) {
 	if(empty($choices)) {
 		$choices = fsst_fetch_options($name);
 		if(!empty($choices)) {
-			set_transient("st_{$name}_choices", $choices, 60);
+			set_transient("st_{$name}_choices", $choices, 600);
 		}
 	}
 	return $choices;

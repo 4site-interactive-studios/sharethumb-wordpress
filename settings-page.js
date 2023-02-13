@@ -16,7 +16,7 @@ jQuery(function($) {
 		}).on('select', function() { // it also has "open" and "close" events
 			const attachment = custom_uploader.state().get('selection').first().toJSON();
 			if(attachment) {
-				const url = attachment.sizes.hasOwnProperty('thumbnail') ? attachment.sizes.hasOwnProperty('thumbnail') : attachment.url;
+				const url = attachment.sizes.hasOwnProperty('thumbnail') ? attachment.sizes.thumbnail.url : attachment.url;
 				button.html('<img src="' + url + '">'); // add image instead of "Upload Image"
 				button.next().show(); // show "Remove image" link
 				button.next().next().val(attachment.id); // Populate the hidden field with image ID				

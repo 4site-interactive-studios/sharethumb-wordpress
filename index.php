@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ShareThumb Wordpress Plugin
- * Version: 1.0.0
+ * Version: 1.0.1
  * Plugin URI: TBD
  * Description: TBD
  * Author: 4Site Interactive Studios

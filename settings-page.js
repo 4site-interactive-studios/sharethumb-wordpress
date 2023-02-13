@@ -15,9 +15,12 @@ jQuery(function($) {
 			multiple: false
 		}).on('select', function() { // it also has "open" and "close" events
 			const attachment = custom_uploader.state().get('selection').first().toJSON();
-			button.html('<img src="' + attachment.sizes.thumbnail.url + '">'); // add image instead of "Upload Image"
-			button.next().show(); // show "Remove image" link
-			button.next().next().val(attachment.id); // Populate the hidden field with image ID
+			if(attachment) {
+				const url = attachment.sizes.hasOwnProperty('thumbnail') ? attachment.sizes.hasOwnProperty('thumbnail') : attachment.url;
+				button.html('<img src="' + url + '">'); // add image instead of "Upload Image"
+				button.next().show(); // show "Remove image" link
+				button.next().next().val(attachment.id); // Populate the hidden field with image ID				
+			}
 		});
 
 		// already selected images

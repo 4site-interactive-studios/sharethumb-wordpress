@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ShareThumb Wordpress Plugin
- * Version: 1.0.1
+ * Version: 1.0.2
  * Plugin URI: TBD
  * Description: TBD
  * Author: 4Site Interactive Studios
@@ -185,7 +185,7 @@ function fsst_get_page_title() {
 
 	$title = apply_filters('wp_title', $title, $sep, $seplocation);
 
-	return $title . get_bloginfo('name');
+	return $title;
 }
 
 // Capture all the metatags output by other plugins and WP Core, and then remove the metatags

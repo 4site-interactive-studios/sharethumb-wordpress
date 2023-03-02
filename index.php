@@ -169,6 +169,8 @@ function fsst_get_page_title() {
 		$title = __('Page not found');
 	}
 
+	// removing the separator
+	$sep = '';
 	$prefix = '';
 	if(! empty($title)) {
 		$prefix = " $sep ";
@@ -185,7 +187,7 @@ function fsst_get_page_title() {
 
 	$title = apply_filters('wp_title', $title, $sep, $seplocation);
 
-	return $title;
+	return trim($title);
 }
 
 // Capture all the metatags output by other plugins and WP Core, and then remove the metatags

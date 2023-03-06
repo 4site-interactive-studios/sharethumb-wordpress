@@ -4,7 +4,11 @@
 <form id='st-settings-form' method='POST' action='<?php echo admin_url('admin.php?page=' . $_GET['page']); ?>'>
 	<div class='configuration-wrapper'>
 		<div class='full-width'>
-			<?php echo fsst_get_validation_result_field(); ?>
+			<div id='validation-message' class="<?php echo $api_error !== '' ? 'unvalidated': ''?>">
+				<?php
+					echo $api_error !== '' ? 'Error saving settings: '.$api_error.'<br>Check your API Key.' : '';
+				?>
+			</div>
 		</div>
 		<div class='full-width two-column'>
 			<?php echo fsst_get_text_field('API Key', 'api_key', $configuration); ?>

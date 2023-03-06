@@ -15,6 +15,7 @@ define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
 define('FSST_SETTINGS_URL', 'https://og.sharethumb.app/save-settings');
 define('FSST_REGENERATE_THUMBNAIL_URL', 'https://og.sharethumb.app/regenerate-thumb');
 define('FSST_GET_THUMBNAIL_ID_URL', 'https://og.sharethumb.app/get-thumb-id');
+define('FSST_IS_VALID_API_KEY_URL', 'https://og.sharethumb.app/validate-api-key');
 
 // This base URL must end in a slash
 define('FSST_IMAGE_BASE_URL', 'https://og.sharethumb.app/og/');
@@ -280,8 +281,17 @@ function fsst_save_configuration($configuration) {
 	$configuration['logo_url'] = ($configuration['logo']) ? wp_get_attachment_image_url($configuration['logo'], 'large') : '';
 	$configuration['icon_url'] = ($configuration['icon']) ? wp_get_attachment_image_url($configuration['icon'], 'large') : '';
 
+	if($configuration['api_key']) {
+		$validateApiKey = fsst_api_validate_api_key($configuration['api_key']);
+		if($validateApiKey['statusCode'] === 200 && $validateApiKey['plan']) {
+			$configuration['plan'] = $validateApiKey['plan'];
+			update_option('fsst_configuration', $configuration);
+			fsst_api_save_configuration($configuration);
+			return '';
+		}
+		return $validateApiKey['message'];
+	}
 	update_option('fsst_configuration', $configuration);
-	fsst_api_save_configuration($configuration);
 }
 
 function fsst_get_configuration() {
@@ -317,8 +327,9 @@ add_action('admin_menu', function() {
 });
 
 function fsst_admin_page_settings() {
+	$api_error = '';
 	if(!empty($_POST)) {
-		fsst_save_configuration($_POST);
+		$api_error .= fsst_save_configuration($_POST);
 	}
 	include 'settings-page.php';	
 }
@@ -369,13 +380,6 @@ function fsst_get_select_options($name) {
 		}
 	}
 	return $choices;
-}
-
-function fsst_get_validation_result_field() {
-	return "
-		<div id='validation-message'>
-		</div>
-	";
 }
 
 function fsst_get_text_field($field_label, $field_name, $configuration) {
@@ -481,6 +485,30 @@ function fsst_get_color_picker_field($field_label, $field_name, $configuration) 
  * 
  **/
 
+ function fsst_api_validate_api_key($api_key) {
+	$ch = curl_init();
+	curl_setopt_array($ch, [
+		CURLOPT_URL => FSST_IS_VALID_API_KEY_URL,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'GET',
+		CURLOPT_HTTPHEADER => [
+			'sharethumb-api-key: ' . $api_key,
+			'Content-Type: application/json',
+		],
+	]);
+
+	$response = curl_exec($ch);
+	curl_close($ch);
+	$response = json_decode($response, true);
+
+	return $response;
+}
+
 
 function fsst_api_get_thumbnail_id($configuration, $post_url) {
 	// don't bother if we don't have an API Key
@@ -536,7 +564,7 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 	$response = curl_exec($ch);
 	curl_close($ch);
 	
-	if($response && !empty($response->statusCode) && $response->statusCode == 200) {
+	if($response && !empty($response['statusCode']) && $response['statusCode']) {
 		return true;
 	}
 	return false;

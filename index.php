@@ -220,23 +220,15 @@ add_filter('wp_head', function() {
  * 
  **/
 
-add_action('pre_post_update', function($post_ID, $data) {
-	if(isset($data['post_title'])) {
-		global $wpdb;
-		$existing_post_title = $wpdb->get_var("
-			SELECT post_title
-			FROM {$wpdb->posts}
-			WHERE ID = {$post_ID}
-		");
-		if($existing_post_title && $data['post_title'] !== $existing_post_title) {
-			$configuration = fsst_get_configuration();
-			$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
-			if($thumbnail_id) {
-				fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
-			}
+add_action('post_updated', function($post_ID, $post_after, $post_before){
+	if($post_after->post_title !== $post_before->post_title) {
+		$configuration = fsst_get_configuration();
+		$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
+		if($thumbnail_id) {
+			fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
 		}
 	}
-}, PHP_INT_MAX, 2);
+}, PHP_INT_MAX, 3);
 
 
 

@@ -12,6 +12,10 @@ if(!defined('ABSPATH')) { exit; }
 
 define('FSST_FONT_URL', 'https://api.sharethumb.app/fonts');
 define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
+define('FSST_SETTINGS_URL', 'https://og.sharethumb.app/save-settings');
+define('FSST_REGENERATE_THUMBNAIL_URL', 'https://og.sharethumb.app/regenerate-thumb');
+define('FSST_GET_THUMBNAIL_ID_URL', 'https://og.sharethumb.app/get-thumb-id');
+define('FSST_IS_VALID_API_KEY_URL', 'https://og.sharethumb.app/validate-api-key');
 
 // This base URL must end in a slash
 define('FSST_IMAGE_BASE_URL', 'https://og.sharethumb.app/og/');
@@ -210,6 +214,24 @@ add_filter('wp_head', function() {
 
 
 
+
+/**
+ * Regenerate thumbnails whenever a page/post title changes
+ * 
+ **/
+
+add_action('post_updated', function($post_ID, $post_after, $post_before){
+	if($post_after->post_title !== $post_before->post_title) {
+		$configuration = fsst_get_configuration();
+		$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
+		if($thumbnail_id) {
+			fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
+		}
+	}
+}, PHP_INT_MAX, 3);
+
+
+
 /**
  *  Configuration Save & Load Functions
  * 
@@ -233,7 +255,8 @@ function fsst_get_default_configuration() {
 		'accent' => '',		// accent color
 		'secondary' => '',	// secondary color
 		'icon_url' => '',	// only populated when saving the configuration set
-		'logo_url' => ''	// only populated when saving the configuration set
+		'logo_url' => '',	// only populated when saving the configuration set
+		'plan' => '',		// stores the subscribed sharethumb plan -- populated via frontend with a call to the sharethumb API during save
 	];
 }
 
@@ -250,6 +273,16 @@ function fsst_save_configuration($configuration) {
 	$configuration['logo_url'] = ($configuration['logo']) ? wp_get_attachment_image_url($configuration['logo'], 'large') : '';
 	$configuration['icon_url'] = ($configuration['icon']) ? wp_get_attachment_image_url($configuration['icon'], 'large') : '';
 
+	if($configuration['api_key']) {
+		$validateApiKey = fsst_api_validate_api_key($configuration['api_key']);
+		if($validateApiKey['statusCode'] === 200 && $validateApiKey['plan']) {
+			$configuration['plan'] = $validateApiKey['plan'];
+			update_option('fsst_configuration', $configuration);
+			fsst_api_save_configuration($configuration);
+			return '';
+		}
+		return $validateApiKey['message'];
+	}
 	update_option('fsst_configuration', $configuration);
 }
 
@@ -286,8 +319,9 @@ add_action('admin_menu', function() {
 });
 
 function fsst_admin_page_settings() {
+	$api_error = '';
 	if(!empty($_POST)) {
-		fsst_save_configuration($_POST);
+		$api_error .= fsst_save_configuration($_POST);
 	}
 	include 'settings-page.php';	
 }
@@ -378,6 +412,15 @@ function fsst_get_image_field($field_label, $field_name, $configuration) {
 	";
 }
 
+function fsst_get_hidden_field($field_name, $configuration) {
+	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
+	return "
+		<div class='input-wrapper'>
+			<input id='field-{$field_name}' type='hidden' name='{$field_name}' value='{$field_value}' />
+		</div>
+	";
+}
+
 function fsst_get_select_field($field_label, $field_name, $configuration) {
 	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
 	$options = fsst_get_select_options($field_name);
@@ -426,4 +469,142 @@ function fsst_get_color_picker_field($field_label, $field_name, $configuration) 
 			<input id='field-{$field_name}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' />
 		</div>
 	";
+}
+
+
+/**
+ *  ShareThumb API Interactions
+ * 
+ **/
+
+ function fsst_api_validate_api_key($api_key) {
+	$ch = curl_init();
+	curl_setopt_array($ch, [
+		CURLOPT_URL => FSST_IS_VALID_API_KEY_URL,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'GET',
+		CURLOPT_HTTPHEADER => [
+			'sharethumb-api-key: ' . $api_key,
+			'Content-Type: application/json',
+		],
+	]);
+
+	$response = curl_exec($ch);
+	curl_close($ch);
+	$response = json_decode($response, true);
+
+	return $response;
+}
+
+
+function fsst_api_get_thumbnail_id($configuration, $post_url) {
+	// don't bother if we don't have an API Key
+	if(empty($configuration['api_key'])) {
+		return;
+	}
+
+	$query_string = http_build_query(['url' => $post_url]);
+	$ch = curl_init();
+	curl_setopt_array($ch, [
+		CURLOPT_URL => FSST_GET_THUMBNAIL_ID_URL . '?' . $query_string,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_ENCODING => '',
+		CURLOPT_MAXREDIRS => 10,
+		CURLOPT_TIMEOUT => 0,
+		CURLOPT_FOLLOWLOCATION => true,
+		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+		CURLOPT_CUSTOMREQUEST => 'GET',
+		CURLOPT_HTTPHEADER => [
+			'sharethumb-api-key: ' . $configuration['api_key']
+		]
+	]);
+	$response = curl_exec($ch);
+	curl_close($ch);
+
+	if($response) {
+		$encoded_response = json_decode($response);
+		if($encoded_response->statusCode == 200 && isset($encoded_response->id)) {
+			return $encoded_response->id;
+		}
+	}
+
+	return false;
+}
+
+function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
+	// don't bother if we don't have an API Key
+	if(empty($configuration['api_key'])) {
+		return;
+	}
+
+	$ch = curl_init();
+	$opts = [
+		CURLOPT_URL => FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_CUSTOMREQUEST => 'PUT',
+		CURLOPT_HTTPHEADER => [
+			'sharethumb-api-key: ' . $configuration['api_key']
+		]
+	];
+	
+	curl_setopt_array($ch, $opts);
+	$response = curl_exec($ch);
+	curl_close($ch);
+	
+	if($response && !empty($response['statusCode']) && $response['statusCode']) {
+		return true;
+	}
+	return false;
+}
+
+function fsst_api_save_configuration($configuration) {
+	// don't bother if we don't have an API Key
+	if(empty($configuration['api_key'])) {
+		return;
+	}
+
+	// remove empty keys per sharethumb API requirements
+	foreach($configuration as $key => $value) {
+		if(!$value) {
+			unset($configuration[$key]);
+		}
+	}
+
+	// remove unwated fields, and update fields to their preferred type of value (WP File ID to WP File URL, notably)
+	$api_key = $configuration['api_key'];
+	unset($configuration['api_key']);
+	if(isset($configuration['plan'])) {
+		unset($configuration['plan']);
+	}
+	if(isset($configuration['dv_code'])) {
+		unset($configuration['dv_code']);
+	}
+	if(isset($configuration['logo_url'])) {
+		$configuration['logo'] = $configuration['logo_url'];
+		unset($configuration['logo_url']);
+	}
+	if(isset($configuration['icon_url'])) {
+		$configuration['icon'] = $configuration['icon_url'];
+		unset($configuration['icon_url']);
+	}
+
+	$json_configuration = json_encode($configuration);
+	$ch = curl_init();
+	curl_setopt_array($ch, [
+		CURLOPT_URL => FSST_SETTINGS_URL,
+		CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_CUSTOMREQUEST => 'PUT',
+		CURLOPT_POSTFIELDS => $json_configuration,
+		CURLOPT_HTTPHEADER => [
+			'sharethumb-api-key: ' . $api_key,
+			'Content-Type: application/json'
+		]
+	]);
+	$response = curl_exec($ch);
+	curl_close($ch);
 }

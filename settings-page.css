@@ -9,6 +9,17 @@
 .configuration-wrapper * {
 	max-width: 100%;
 }
+
+.instructions {
+	margin-bottom: 10px;
+}
+
+.checkbox-wrapper {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 25px;
+}
 .input-wrapper {
 	padding: 20px;
 	margin-bottom: 20px;
@@ -17,15 +28,8 @@
 	flex-direction: column;
 	row-gap: 10px;
 }
-.full-width { 
-	width: 100%; 
-}
-.two-column {
-	display: flex;
-	flex-direction: row;		
-}
-.two-column > * {
-	width: 50%;
+#sharethumb-meta-box .input-wrapper {
+	padding: 0;
 }
 .button, button {
 	width: fit-content;
@@ -37,4 +41,87 @@ label {
 }
 textarea, input, select {
 	width: 100%;
+}
+
+
+.full-width {
+	width: 100%;
+}
+.half-width {
+	width: 50%;
+}
+.one-column {
+	display: flex;
+	flex-direction: column;	
+}
+.two-column {
+	display: flex;
+	flex-direction: row;
+}
+.two-column > * {
+	width: 50%;
+}
+
+
+
+
+/* Field API Key */
+#field-api-key.validated {
+	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #00FF00, #00FF00);
+}
+#field-api-key.unvalidated {
+	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #FF0000, #FF0000);
+}
+#field-api_key {
+	animation-play-state: paused;
+}
+#field-api_key.validating {
+	--border-size: 1px;
+	--border-angle: 0turn;
+	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #08f, #f03);
+	background-size: calc(100% - (var(--border-size) * 2)) calc(100% - (var(--border-size) * 2)), cover;
+	background-position: center center;
+	background-repeat: no-repeat;
+	animation: bg-spin 3s linear infinite;
+}
+
+@keyframes bg-spin {
+	to {
+		--border-angle: 1turn;
+	}
+}
+
+@property --border-angle {
+	syntax: "<angle>";
+	inherits: true;
+	initial-value: 0turn;
+}
+
+#validation-message {
+	padding: 20px;
+}
+#validation-message.validated {
+	color: green;
+}
+#validation-message.unvalidated {
+	color: red;
+}
+
+
+
+#wrapper-custom_theme label {
+	display: none;
+}
+#wrapper-theme {
+	padding-bottom: 0;
+	margin-bottom: 0;
+}
+#wrapper-custom_theme {
+	margin-bottom: 0;
+}
+.theme-outer-wrapper #wrapper-custom_theme {
+	visibility: hidden;
+}
+.theme-outer-wrapper[data-theme="custom"] #wrapper-custom_theme {
+	visibility: visible;
 }

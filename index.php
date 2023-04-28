@@ -15,7 +15,6 @@ define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
 define('FSST_SETTINGS_URL', 'https://og.sharethumb.app/save-settings');
 define('FSST_REGENERATE_THUMBNAIL_URL', 'https://og.sharethumb.app/regenerate-thumb');
 define('FSST_GET_THUMBNAIL_ID_URL', 'https://og.sharethumb.app/get-thumb-id');
-define('FSST_IS_VALID_API_KEY_URL', 'https://og.sharethumb.app/validate-api-key');
 
 // This base URL must end in a slash
 define('FSST_IMAGE_BASE_URL', 'https://og.sharethumb.app/og/');
@@ -31,7 +30,7 @@ define('FSST_IMAGE_BASE_URL', 'https://og.sharethumb.app/og/');
 
 // Output the necessary metatags to support sharethumb
 add_action('wp_head', function() {
-	$st_config = fsst_get_configuration();
+	$st_config = fsst_get_global_configuration();
 
 	echo "\n";
 	if(!empty($st_config['dv_code']) && is_front_page()) {
@@ -48,6 +47,9 @@ add_action('wp_head', function() {
 	}
 	if(!empty($st_config['theme'])) {
 		echo "<meta property='st:theme' content='{$st_config['theme']}'>\n";
+		if($st_config['theme'] == 'custom' && !empty($st_config['custom_theme'])) {
+			echo "<meta property='st:theme_custom' content='{$st_config['custom_theme']}'>\n";
+		}
 	}
 	if(!empty($st_config['foreground'])) {
 		echo "<meta property='st:font_color' content='{$st_config['foreground']}'>\n";
@@ -67,6 +69,15 @@ add_action('wp_head', function() {
 		echo "<meta property='st:image' content='{$featured_image_url}'>\n";
 	}
 
+	echo "<meta name='robots' content='max-image-preview:large'>\n";
+
+	$site_name = get_bloginfo('name');
+	echo "<meta property='st:site_name' content='{$site_name}'>\n";
+
+	$excerpt = str_replace("'", "", get_the_excerpt());
+	if($excerpt) {
+		echo "<meta property='st:description' content='{$excerpt}'>\n";		
+	}
 
 	global $wp;
 	$page_url = home_url($wp->request);
@@ -77,7 +88,9 @@ add_action('wp_head', function() {
 	$page_title = fsst_get_page_title();
 	$image_base_url = FSST_IMAGE_BASE_URL;
 
-	// We remove the original metatags in the wp_head filter
+	echo "<meta name='st:title' content='{$page_title}'>\n";
+
+	// We remove the original metatags in the wp_head filter and use these, instead
 	echo "<meta name='twitter:title' content='{$page_title}'>\n";
 	echo "<meta name='twitter:image' content='{$image_base_url}{$page_url}'>\n";
 	echo "<meta name='twitter:card' content='summary_large_image'>\n";
@@ -220,15 +233,23 @@ add_filter('wp_head', function() {
  * 
  **/
 
-add_action('post_updated', function($post_ID, $post_after, $post_before){
-	if($post_after->post_title !== $post_before->post_title) {
-		$configuration = fsst_get_configuration();
-		$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
-		if($thumbnail_id) {
-			fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
+add_action('pre_post_update', function($post_ID, $data) {
+	if(isset($data['post_title'])) {
+		global $wpdb;
+		$existing_post_title = $wpdb->get_var("
+			SELECT post_title
+			FROM {$wpdb->posts}
+			WHERE ID = {$post_ID}
+		");
+		if($existing_post_title && $data['post_title'] !== $existing_post_title) {
+			$configuration = fsst_get_global_configuration();
+			$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
+			if($thumbnail_id) {
+				fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
+			}
 		}
 	}
-}, PHP_INT_MAX, 3);
+}, PHP_INT_MAX, 2);
 
 
 
@@ -242,26 +263,31 @@ add_action('post_updated', function($post_ID, $post_after, $post_before){
  **/
 
 // Any keys not present here will be removed on save
-function fsst_get_default_configuration() {
+function fsst_get_default_global_configuration() {
 	return [
-		'api_key' => '',	// ShareThumb API key
-		'dv_code' => '',	// ShareThumb Domain Verification code
-		'logo' => 0,		// image ID
-		'icon' => 0,		// image ID
-		'theme' => '',		// selected from a list of options provided by the ShareThumb API
-		'font' => '',		// selected from a list of options provided by the ShareThumb API
-		'foreground' => '',	// text color
-		'background' => '',	// background color
-		'accent' => '',		// accent color
-		'secondary' => '',	// secondary color
-		'icon_url' => '',	// only populated when saving the configuration set
-		'logo_url' => '',	// only populated when saving the configuration set
-		'plan' => '',		// stores the subscribed sharethumb plan -- populated via frontend with a call to the sharethumb API during save
+		'api_key' => '',		// ShareThumb API key
+		'dv_code' => '',		// ShareThumb Domain Verification code
+		'logo' => 0,			// image ID
+		'icon' => 0,			// image ID
+		'theme' => '',			// selected from a list of options provided by the ShareThumb API
+		'custom_theme' => '',	// manually entered by the user if theme is set to "custom"
+		'font' => '',			// selected from a list of options provided by the ShareThumb API
+		'foreground' => '',		// text color
+		'background' => '',		// background color
+		'accent' => '',			// accent color
+		'secondary' => '',		// secondary color
+		'icon_url' => '',		// only populated when saving the configuration set
+		'logo_url' => '',		// only populated when saving the configuration set
+		'plan' => '',			// stores the subscribed sharethumb plan -- populated via frontend with a call to the sharethumb API during save		
 	];
 }
 
-function fsst_save_configuration($configuration) {
-	$default_configuration = fsst_get_default_configuration();
+function fsst_save_global_configuration($configuration) {
+	if(!empty($configuration['enabled_post_types'])) {
+		set_transient('st_enabled_post_types', $configuration['enabled_post_types']);
+	}
+
+	$default_configuration = fsst_get_default_global_configuration();
 	
 	// Remove any key:value pairs we don't want to save
 	$configuration = array_intersect_key($configuration, $default_configuration);
@@ -273,25 +299,60 @@ function fsst_save_configuration($configuration) {
 	$configuration['logo_url'] = ($configuration['logo']) ? wp_get_attachment_image_url($configuration['logo'], 'large') : '';
 	$configuration['icon_url'] = ($configuration['icon']) ? wp_get_attachment_image_url($configuration['icon'], 'large') : '';
 
-	if($configuration['api_key']) {
-		$validateApiKey = fsst_api_validate_api_key($configuration['api_key']);
-		if($validateApiKey['statusCode'] === 200 && $validateApiKey['plan']) {
-			$configuration['plan'] = $validateApiKey['plan'];
-			update_option('fsst_configuration', $configuration);
-			fsst_api_save_configuration($configuration);
-			return '';
-		}
-		return $validateApiKey['message'];
-	}
 	update_option('fsst_configuration', $configuration);
+	fsst_api_save_global_configuration($configuration);
 }
 
-function fsst_get_configuration() {
-	$default_configuration = fsst_get_default_configuration();
+function fsst_get_global_configuration() {
+	$default_configuration = fsst_get_default_global_configuration();
 	$configuration = array_replace($default_configuration, get_option('fsst_configuration', []));
 	return $configuration;
 }
 
+
+// Post-specific overrides
+function fsst_get_default_post_configuration() {
+	return [
+		'sharethumb_logo' => 0,
+		'sharethumb_icon' => 0,
+		'sharethumb_theme' => '',		
+		'sharethumb_custom_theme' => '',
+		'sharethumb_font' => '',		
+		'sharethumb_foreground' => '',	
+		'sharethumb_background' => '',	
+		'sharethumb_accent' => '',		
+		'sharethumb_secondary' => '',	
+		'sharethumb_icon_url' => '',	
+		'sharethumb_logo_url' => ''
+	];
+}
+
+function fsst_save_post_configuration($post_id) {
+	$default_configuration = fsst_get_default_post_configuration();
+	$post_configuration = [];
+
+	foreach($default_configuration as $key => $value) {
+		if(!empty($_POST[$key])) {
+			$post_configuration[$key] = $_POST[$key];
+		} else {
+			$post_configuration[$key] = $value;
+		}
+	}
+
+	update_post_meta($post_id, 'sharethumb', $post_configuration);
+}
+
+function fsst_get_post_configuration($post_id) {
+	$default_configuration = fsst_get_default_post_configuration();
+	$post_configuration = get_post_meta($post_id, 'sharethumb');
+	echo '<pre>'.print_r($default_configuration,true).'</pre>';
+	echo '<pre>'.print_r($post_configuration,true).'</pre>';
+	if($post_configuration) {
+		return array_replace($default_configuration, $post_configuration);
+	} else {
+		return $default_configuration;		
+	}
+}
 
 
 
@@ -319,11 +380,25 @@ add_action('admin_menu', function() {
 });
 
 function fsst_admin_page_settings() {
-	$api_error = '';
-	if(!empty($_POST)) {
-		$api_error .= fsst_save_configuration($_POST);
+	$all_post_types = get_post_types([], 'objects');
+	$default_excluded_post_types = ['attachment', 'custom_css', 'nav_menu_item', 'revision', 'attachment', 'seopress_schemas', 'seopress_404', 'seopress_bot', 'acf-field', 'acf-field-group', 'cbxchangelog', 'wp_navigation', 'wp_global_styles', 'wp_template_part', 'wp_template', 'wp_block', 'user_request', 'oembed_cache', 'customize_changeset'];
+	$overridable_post_types = [];
+	foreach($all_post_types as $key => $value) {
+		if(!in_array($key, $default_excluded_post_types)) {
+			$overridable_post_types[$key] = $value->label;
+		}
 	}
-	include 'settings-page.php';	
+
+	if(!empty($_POST)) {
+		fsst_save_global_configuration($_POST);
+	}
+
+	$enabled_post_types = get_transient('st_enabled_post_types');
+	if(!is_array($enabled_post_types)) {
+		$enabled_post_types = ['page', 'post'];
+	}
+
+	include 'settings-page.php';
 }
 
 // Enqueue the scripts & styles for our settings page
@@ -374,10 +449,17 @@ function fsst_get_select_options($name) {
 	return $choices;
 }
 
+function fsst_get_validation_result_field() {
+	return "
+		<div id='validation-message'>
+		</div>
+	";
+}
+
 function fsst_get_text_field($field_label, $field_name, $configuration) {
 	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
 	return "
-		<div class='input-wrapper'>
+		<div class='input-wrapper' id='wrapper-{$field_name}'>
 			<label for='field-{$field_name}'>{$field_label}</label>
 			<input id='field-{$field_name}' type='text' name='{$field_name}' value='{$field_value}' />
 		</div>
@@ -404,7 +486,7 @@ function fsst_get_image_field($field_label, $field_name, $configuration) {
 	}
 
 	return "
-		<div class='input-wrapper'>
+		<div class='input-wrapper' id='wrapper-{$field_name}'>
 			<label for='field-{$field_name}'>{$field_label}</label>
 			{$field_markup}
 			<input id='field-{$field_name}' type='hidden' name='{$field_name}' value='{$field_value}' />
@@ -415,7 +497,7 @@ function fsst_get_image_field($field_label, $field_name, $configuration) {
 function fsst_get_hidden_field($field_name, $configuration) {
 	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
 	return "
-		<div class='input-wrapper'>
+		<div class='input-wrapper' id='wrapper-{$field_name}'>
 			<input id='field-{$field_name}' type='hidden' name='{$field_name}' value='{$field_value}' />
 		</div>
 	";
@@ -429,7 +511,7 @@ function fsst_get_select_field($field_label, $field_name, $configuration) {
 	if(!is_array($options) || !count($options)) {
 
 		return "
-			<div class='input-wrapper'>
+			<div class='input-wrapper' id='wrapper-{$field_name}'>
 				<label for='field-{$field_name}'>{$field_label}</label>
 				<input id='field-{$field_name}' type='text' name='{$field_name}' value='{$field_value}' />
 			</div>
@@ -447,7 +529,7 @@ function fsst_get_select_field($field_label, $field_name, $configuration) {
 		}
 		$option_none = ($field_value) ? "<option value=''>None</option>" : "<option value='' selected>None</option>";
 		return "
-			<div class='input-wrapper'>
+			<div class='input-wrapper' id='wrapper-{$field_name}'>
 				<label for='field-{$field_name}'>{$field_label}</label>
 				<select id='field-{$field_name}' name='{$field_name}' data-placeholder='{$field_label}'>
 					{$option_none}
@@ -464,7 +546,7 @@ function fsst_get_select_field($field_label, $field_name, $configuration) {
 function fsst_get_color_picker_field($field_label, $field_name, $configuration) {
 	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
 	return "
-		<div class='input-wrapper'>
+		<div class='input-wrapper' id='wrapper-{$field_name}'>
 			<label for='field-{$field_name}'>{$field_label}</label>			 
 			<input id='field-{$field_name}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' />
 		</div>
@@ -477,30 +559,6 @@ function fsst_get_color_picker_field($field_label, $field_name, $configuration) 
  * 
  **/
 
- function fsst_api_validate_api_key($api_key) {
-	$ch = curl_init();
-	curl_setopt_array($ch, [
-		CURLOPT_URL => FSST_IS_VALID_API_KEY_URL,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_ENCODING => '',
-		CURLOPT_MAXREDIRS => 10,
-		CURLOPT_TIMEOUT => 0,
-		CURLOPT_FOLLOWLOCATION => true,
-		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-		CURLOPT_CUSTOMREQUEST => 'GET',
-		CURLOPT_HTTPHEADER => [
-			'sharethumb-api-key: ' . $api_key,
-			'Content-Type: application/json',
-		],
-	]);
-
-	$response = curl_exec($ch);
-	curl_close($ch);
-	$response = json_decode($response, true);
-
-	return $response;
-}
-
 
 function fsst_api_get_thumbnail_id($configuration, $post_url) {
 	// don't bother if we don't have an API Key
@@ -509,25 +567,14 @@ function fsst_api_get_thumbnail_id($configuration, $post_url) {
 	}
 
 	$query_string = http_build_query(['url' => $post_url]);
-	$ch = curl_init();
-	curl_setopt_array($ch, [
-		CURLOPT_URL => FSST_GET_THUMBNAIL_ID_URL . '?' . $query_string,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_ENCODING => '',
-		CURLOPT_MAXREDIRS => 10,
-		CURLOPT_TIMEOUT => 0,
-		CURLOPT_FOLLOWLOCATION => true,
-		CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-		CURLOPT_CUSTOMREQUEST => 'GET',
-		CURLOPT_HTTPHEADER => [
-			'sharethumb-api-key: ' . $configuration['api_key']
+	$response = wp_remote_get(FSST_GET_THUMBNAIL_ID_URL . '?' . $query_string, [
+		'headers' => [
+			'sharethumb-api-key' => $configuration['api_key']
 		]
 	]);
-	$response = curl_exec($ch);
-	curl_close($ch);
 
-	if($response) {
-		$encoded_response = json_decode($response);
+	if($response && !is_wp_error($response)) {
+		$encoded_response = json_decode(wp_remote_retrieve_body($response));
 		if($encoded_response->statusCode == 200 && isset($encoded_response->id)) {
 			return $encoded_response->id;
 		}
@@ -542,27 +589,24 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 		return;
 	}
 
-	$ch = curl_init();
-	$opts = [
-		CURLOPT_URL => FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_CUSTOMREQUEST => 'PUT',
-		CURLOPT_HTTPHEADER => [
-			'sharethumb-api-key: ' . $configuration['api_key']
+	$response = wp_remote_post(FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id, [
+		'method' => 'PUT',
+		'headers' => [
+			'sharethumb-api-key' => $configuration['api_key']
 		]
-	];
+	]);
 	
-	curl_setopt_array($ch, $opts);
-	$response = curl_exec($ch);
-	curl_close($ch);
-	
-	if($response && !empty($response['statusCode']) && $response['statusCode']) {
-		return true;
+	if($response && !is_wp_error($response)) {
+		$encoded_response = json_decode(wp_remote_retrieve_body($response));
+		if(!empty($encoded_response->statusCode) && $encoded_response->statusCode == 200) {
+			return true;
+		}
 	}
+
 	return false;
 }
 
-function fsst_api_save_configuration($configuration) {
+function fsst_api_save_global_configuration($configuration) {
 	// don't bother if we don't have an API Key
 	if(empty($configuration['api_key'])) {
 		return;
@@ -594,17 +638,54 @@ function fsst_api_save_configuration($configuration) {
 	}
 
 	$json_configuration = json_encode($configuration);
-	$ch = curl_init();
-	curl_setopt_array($ch, [
-		CURLOPT_URL => FSST_SETTINGS_URL,
-		CURLOPT_RETURNTRANSFER => true,
-		CURLOPT_CUSTOMREQUEST => 'PUT',
-		CURLOPT_POSTFIELDS => $json_configuration,
-		CURLOPT_HTTPHEADER => [
-			'sharethumb-api-key: ' . $api_key,
-			'Content-Type: application/json'
-		]
+	$response = wp_remote_post(FSST_SETTINGS_URL, [
+		'method' => 'PUT',
+		'headers' => [
+			'sharethumb-api-key' => $api_key,
+			'Content-Type' => 'application/json'
+		],
+		'body' => $json_configuration
 	]);
-	$response = curl_exec($ch);
-	curl_close($ch);
 }
+
+add_action('add_meta_boxes', function($post_type, $post) {
+	$enabled_post_types = get_transient('st_enabled_post_types');
+	add_meta_box(
+		'sharethumb-meta-box',
+		__('ShareThumb Overrides'),
+		'fsst_render_metabox',
+		$enabled_post_types,
+		'side',
+		'default'
+	);		
+}, 10, 2);
+
+function fsst_render_metabox($post) {
+	wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
+	wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery']);
+	wp_enqueue_script('jscolor', 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.1/jscolor.min.js');
+	ob_start();
+	include 'settings-metabox.php';
+	echo ob_get_clean();
+}
+
+add_action('save_post', function($post_id, $post, $update) {
+	if(empty($_POST['sharethumb_nonce']) || !wp_verify_nonce($_POST['sharethumb_nonce'], 'sharethumb_metabox')) {
+		return $post_id;
+	}
+	if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+		return $post_id;
+	}
+
+	if('page' == $_POST['post_type']) {
+		if(!current_user_can('edit_page', $post_id)) {
+			return $post_id;
+		}
+	} else {
+		if(!current_user_can('edit_post', $post_id)) {
+			return $post_id;
+		}
+	}
+
+	fsst_save_post_configuration($post_id);
+}, 10, 3);

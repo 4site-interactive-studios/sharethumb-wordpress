@@ -1,14 +1,10 @@
 <?php if(!defined('ABSPATH')) { exit; } ?>
-<?php $configuration = fsst_get_configuration(); ?>
+<?php $configuration = fsst_get_global_configuration(); ?>
 <h1><?php echo get_admin_page_title(); ?></h1>
 <form id='st-settings-form' method='POST' action='<?php echo admin_url('admin.php?page=' . $_GET['page']); ?>'>
 	<div class='configuration-wrapper'>
 		<div class='full-width'>
-			<div id='validation-message' class="<?php echo $api_error !== '' ? 'unvalidated': ''?>">
-				<?php
-					echo $api_error !== '' ? 'Error saving settings: '.$api_error.'<br>Check your API Key.' : '';
-				?>
-			</div>
+			<?php echo fsst_get_validation_result_field(); ?>
 		</div>
 		<div class='full-width two-column'>
 			<?php echo fsst_get_text_field('API Key', 'api_key', $configuration); ?>
@@ -18,10 +14,17 @@
 			<?php echo fsst_get_image_field('Logo', 'logo', $configuration); ?>
 			<?php echo fsst_get_image_field('Icon', 'icon', $configuration); ?>
 		</div>
+
 		<div class='full-width two-column'>
-			<?php echo fsst_get_select_field('Theme', 'theme', $configuration); ?>
-			<?php echo fsst_get_select_field('Font', 'font', $configuration); ?>
+			<div class='half-width one-column theme-outer-wrapper' data-theme='<?php echo $configuration['theme']; ?>'>
+				<?php echo fsst_get_select_field('Theme', 'theme', $configuration); ?>
+				<?php echo fsst_get_text_field('Custom Theme', 'custom_theme', $configuration); ?>
+			</div>
+			<div class='half-width one-column'>
+				<?php echo fsst_get_select_field('Font', 'font', $configuration); ?>
+			</div>
 		</div>
+
 		<div class='full-width two-column'>
 			<?php echo fsst_get_color_picker_field('Foreground', 'foreground', $configuration); ?>
 			<?php echo fsst_get_color_picker_field('Background', 'background', $configuration); ?>
@@ -31,62 +34,39 @@
 		<div class='hidden'>
 			<?php echo fsst_get_hidden_field('plan', $configuration); ?>
 		</div>
+
+		<?php if(is_array($overridable_post_types) && count($overridable_post_types)): ?>
+		<div class='full-width'>
+			<div class='input-wrapper'>
+				<label>Overridable Post Types</label>
+				<div class='checkbox-wrapper'>
+				<?php foreach($overridable_post_types as $key => $label): ?>
+					<label>
+						<input 
+							type='checkbox' 
+							name='enabled_post_types[]' 
+							value='<?php echo $key; ?>'
+							<?php if(in_array($key, $enabled_post_types)) echo 'checked'; ?>
+						>
+						<?php echo $label; ?>
+					</label>
+				<?php endforeach; ?>
+				</div>
+			</div>
+		</div>
+		<?php endif; ?>
+
 		<div class='full-width'>
 			<div class='input-wrapper'>
 				<button type='submit'>Update</button>
 			</div>
 		</div>
+		<p>Have questions about ShareThumb? Please <a href='mailto:support@4sitestudios.com'>email us</a> and we will get back to you within 24 business hours.</p>
 	</div>
 	<div class='notes-wrapper'>
 		<ul>
 			<li>Color picker JS borrowed from <a href='https://jscolor.com/' target='_blank'>jscolor.com</a></li>
 			<li>Drop-down JS borrowed from <a href='https://select2.org/' target='_blank'>select2.org</a></li>
-		</ul>
+		</ul>		
 	</div>
 </form>
-
-<style>
-#validation-message {
-	padding: 20px;
-}
-#validation-message.validated {
-	color: green;
-}
-#validation-message.unvalidated {
-	color: red;
-}
-#field-api-key.validated {
-	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #00FF00, #00FF00);
-}
-#field-api-key.unvalidated {
-	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #FF0000, #FF0000);
-}
-
-#field-api_key {
-	animation-play-state: paused;
-}
-
-#field-api_key.validating {
-	--border-size: 1px;
-	--border-angle: 0turn;
-	background-image: conic-gradient(from var(--border-angle), #fff, #fff 50%, #fff), conic-gradient(from var(--border-angle), transparent 20%, #08f, #f03);
-	background-size: calc(100% - (var(--border-size) * 2)) calc(100% - (var(--border-size) * 2)), cover;
-	background-position: center center;
-	background-repeat: no-repeat;
-
-	animation: bg-spin 3s linear infinite;
-
-}
-
-@keyframes bg-spin {
-	to {
-		--border-angle: 1turn;
-	}
-}
-
-@property --border-angle {
-	syntax: "<angle>";
-	inherits: true;
-	initial-value: 0turn;
-}
-</style>

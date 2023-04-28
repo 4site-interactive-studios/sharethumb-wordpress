@@ -345,8 +345,6 @@ function fsst_save_post_configuration($post_id) {
 function fsst_get_post_configuration($post_id) {
 	$default_configuration = fsst_get_default_post_configuration();
 	$post_configuration = get_post_meta($post_id, 'sharethumb');
-	echo '<pre>'.print_r($default_configuration,true).'</pre>';
-	echo '<pre>'.print_r($post_configuration,true).'</pre>';
 	if($post_configuration) {
 		return array_replace($default_configuration, $post_configuration);
 	} else {

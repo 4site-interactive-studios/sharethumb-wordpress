@@ -12,12 +12,12 @@ if(!defined('ABSPATH')) { exit; }
 
 define('FSST_FONT_URL', 'https://api.sharethumb.app/fonts');
 define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
-define('FSST_SETTINGS_URL', 'https://og.sharethumb.app/save-settings');
-define('FSST_REGENERATE_THUMBNAIL_URL', 'https://og.sharethumb.app/regenerate-thumb');
-define('FSST_GET_THUMBNAIL_ID_URL', 'https://og.sharethumb.app/get-thumb-id');
+define('FSST_SETTINGS_URL', 'https://use.sharethumb.io/save-settings');
+define('FSST_REGENERATE_THUMBNAIL_URL', 'https://use.sharethumb.io/regenerate-thumb');
+define('FSST_GET_THUMBNAIL_ID_URL', 'https://use.sharethumb.io/get-thumb-id');
 
 // This base URL must end in a slash
-define('FSST_IMAGE_BASE_URL', 'https://og.sharethumb.app/og/');
+define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/og/');
 
 
 /**

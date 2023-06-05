@@ -3,11 +3,16 @@ jQuery(function ($) {
   // This can happen if the api key input receives a blur event, or when saving the page.
   let api_key_validation_run = false;
 
+  if($("#validation-message").text()) {
+    setTimeout(function(){ $("#validation-message").text(""); }, 3000);
+  }
+
   function fsst_clear_validation_result() {
     $("#validation-message").removeClass("validated");
     $("#validation-message").removeClass("unvalidated");
     $("#validation-message").text("");
   }
+
   function fsst_show_validation_result(result, message) {
     if (result) {
       $("#field-api_key").addClass("validated");
@@ -127,7 +132,6 @@ jQuery(function ($) {
   });
 
   $("#field-theme").on("select2:select", function (e) {
-    console.log($(".theme-outer-wrapper"));
     $(".theme-outer-wrapper").attr("data-theme", e.params.data.id);
   });
 

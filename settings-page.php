@@ -4,11 +4,11 @@
 <form id='st-settings-form' method='POST' action='<?php echo admin_url('admin.php?page=' . $_GET['page']); ?>'>
 	<div class='configuration-wrapper'>
 		<div class='full-width'>
-			<?php echo fsst_get_validation_result_field(); ?>
+			<?php echo fsst_get_validation_result_field($update_message); ?>
 		</div>
 		<div class='full-width two-column'>
-			<?php echo fsst_get_text_field('API Key', 'api_key', $configuration); ?>
-			<?php echo fsst_get_text_field('Domain Verification Code', 'dv_code', $configuration); ?>
+			<?php echo fsst_get_text_field('API Key', 'api_key', $configuration, "You can find the API Key on the settings page for your site at <a href='https://app.sharethumb.io/dashboard' target='_blank'>https://app.sharethumb.io/dashboard</a>."); ?>
+			<?php echo fsst_get_text_field('Domain Verification Code', 'dv_code', $configuration, "You can find the Domain Validation code for your site at <a href='https://app.sharethumb.io/dashboard' target='_blank'>https://app.sharethumb.io/dashboard</a>."); ?>
 		</div>
 		<div class='full-width two-column'>
 			<?php echo fsst_get_image_field('Logo', 'logo', $configuration); ?>

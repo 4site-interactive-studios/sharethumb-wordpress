@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: ShareThumb Wordpress Plugin
- * Version: 1.0.2
- * Plugin URI: TBD
- * Description: TBD
+ * Version: 1.0.3
+ * Plugin URI: https://sharethumb.io/
+ * Description: Configure the ShareThumb service directly via your own website.
  * Author: 4Site Interactive Studios
  * Author URI: https://4sitestudios.com
  */
@@ -30,7 +30,7 @@ define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/og/');
 
 // Output the necessary metatags to support sharethumb
 add_action('wp_head', function() {
-	$st_config = fsst_get_global_configuration();
+	$st_config = fsst_get_configuration();
 
 	echo "\n";
 	if(!empty($st_config['dv_code']) && is_front_page()) {
@@ -85,20 +85,35 @@ add_action('wp_head', function() {
 	// Add a random number to the end of the URL to force a refresh of the image
 	$page_url .= '?' . rand(1000, 999999);
 
+	
 	$page_title = fsst_get_page_title();
-	$image_base_url = FSST_IMAGE_BASE_URL;
+
+	global $wp;
+	$image_url = fsst_get_st_generated_image_url(home_url($wp->request));
 
 	echo "<meta name='st:title' content='{$page_title}'>\n";
 
 	// We remove the original metatags in the wp_head filter and use these, instead
 	echo "<meta name='twitter:title' content='{$page_title}'>\n";
-	echo "<meta name='twitter:image' content='{$image_base_url}{$page_url}'>\n";
+	echo "<meta name='twitter:image' content='{$image_url}'>\n";
 	echo "<meta name='twitter:card' content='summary_large_image'>\n";
 	echo "<meta property='og:title' content='{$page_title}'>\n";
-	echo "<meta property='og:image' content='{$image_base_url}{$page_url}'>\n";
+	echo "<meta property='og:image' content='{$image_url}'>\n";
 	echo "<meta property='og:image:width' content='1200' />\n";
 	echo "<meta property='og:image:height' content='630' />\n";
 }, 0);
+
+function fsst_get_st_generated_image_url($page_url) {
+	$page_url = preg_replace("(^https?://)", "", $page_url);
+	// Add a random number to the end of the URL to force a refresh of the image
+	if(strpos($page_url, '?') !== false) {
+		$page_url .= '&';
+	} else {
+		$page_url .= '?';
+	}
+	$page_url .= rand(1000, 999999);
+	return FSST_IMAGE_BASE_URL . $page_url;
+}
 
 // Mostly copied from wp_title().  Created my own version in case that function gets deprecated (there's a warning about it in the WP docs)
 function fsst_get_page_title() {
@@ -229,28 +244,39 @@ add_filter('wp_head', function() {
 
 
 /**
- * Regenerate thumbnails whenever a page/post title changes
+ * Regenerate thumbnails whenever a page/post is saved
  * 
  **/
 
-add_action('pre_post_update', function($post_ID, $data) {
-	if(isset($data['post_title'])) {
-		global $wpdb;
-		$existing_post_title = $wpdb->get_var("
-			SELECT post_title
-			FROM {$wpdb->posts}
-			WHERE ID = {$post_ID}
-		");
-		if($existing_post_title && $data['post_title'] !== $existing_post_title) {
-			$configuration = fsst_get_global_configuration();
-			$thumbnail_id = fsst_api_get_thumbnail_id($configuration, get_the_permalink($post_ID));
-			if($thumbnail_id) {
-				fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
-			}
+add_action('edit_post', function($post_id, $post) {
+	if(wp_is_post_revision($post_id) || wp_is_post_autosave($post_id) || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
+		return;
+	}
+
+	// Oftentimes, saving a post might trigger an update function multiple times -- we want to ensure we're not making multiple calls to the API
+	$regenerate_thumbnail = false;
+	$transient_key = "st_post_{$post_id}";
+	$now = time();
+	$last_regenerate = get_transient($transient_key);
+	if($last_regenerate) {
+		$diff = $now - $last_regenerate;
+		if($diff > 30) {
+			$regenerate_thumbnail = true;
+		}
+	} else {		
+		$regenerate_thumbnail = true;
+	}
+	set_transient($transient_key, $now, 30);
+
+	if($regenerate_thumbnail) {
+		$url = get_the_permalink($post_id);
+		$configuration = fsst_get_configuration();
+		$thumbnail_id = fsst_api_get_thumbnail_id($configuration, $url);
+		if($thumbnail_id) {
+			fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
 		}
 	}
 }, PHP_INT_MAX, 2);
-
 
 
 /**
@@ -303,9 +329,26 @@ function fsst_save_global_configuration($configuration) {
 	fsst_api_save_global_configuration($configuration);
 }
 
+function fsst_get_configuration() {
+	$configuration = fsst_get_global_configuration();
+
+	// check if we have any overrides
+	$post_id = get_queried_object_id();
+	if($post_id) {
+		$post_configuration = fsst_get_post_configuration($post_id);
+		foreach($post_configuration as $key => $value) {
+			if($value) {
+				$configuration[$key] = $value;
+			}
+		}
+	}
+
+	return $configuration;
+}
 function fsst_get_global_configuration() {
 	$default_configuration = fsst_get_default_global_configuration();
 	$configuration = array_replace($default_configuration, get_option('fsst_configuration', []));
+
 	return $configuration;
 }
 
@@ -313,17 +356,17 @@ function fsst_get_global_configuration() {
 // Post-specific overrides
 function fsst_get_default_post_configuration() {
 	return [
-		'sharethumb_logo' => 0,
-		'sharethumb_icon' => 0,
-		'sharethumb_theme' => '',		
-		'sharethumb_custom_theme' => '',
-		'sharethumb_font' => '',		
-		'sharethumb_foreground' => '',	
-		'sharethumb_background' => '',	
-		'sharethumb_accent' => '',		
-		'sharethumb_secondary' => '',	
-		'sharethumb_icon_url' => '',	
-		'sharethumb_logo_url' => ''
+		'logo' => 0,
+		'icon' => 0,
+		'theme' => '',		
+		'custom_theme' => '',
+		'font' => '',		
+		'foreground' => '',	
+		'background' => '',	
+		'accent' => '',		
+		'secondary' => '',	
+		'icon_url' => '',	
+		'logo_url' => ''
 	];
 }
 
@@ -332,12 +375,15 @@ function fsst_save_post_configuration($post_id) {
 	$post_configuration = [];
 
 	foreach($default_configuration as $key => $value) {
-		if(!empty($_POST[$key])) {
+		if(isset($_POST[$key])) {
 			$post_configuration[$key] = $_POST[$key];
 		} else {
 			$post_configuration[$key] = $value;
 		}
 	}
+
+	$post_configuration['logo_url'] = ($post_configuration['logo']) ? wp_get_attachment_image_url($post_configuration['logo'], 'large') : '';
+	$post_configuration['icon_url'] = ($post_configuration['icon']) ? wp_get_attachment_image_url($post_configuration['icon'], 'large') : '';
 
 	update_post_meta($post_id, 'sharethumb', $post_configuration);
 }
@@ -345,6 +391,10 @@ function fsst_save_post_configuration($post_id) {
 function fsst_get_post_configuration($post_id) {
 	$default_configuration = fsst_get_default_post_configuration();
 	$post_configuration = get_post_meta($post_id, 'sharethumb');
+	if(is_array($post_configuration[0])) {
+		$post_configuration = $post_configuration[0];
+	}
+
 	if($post_configuration) {
 		return array_replace($default_configuration, $post_configuration);
 	} else {
@@ -387,8 +437,10 @@ function fsst_admin_page_settings() {
 		}
 	}
 
+	$update_message = '';
 	if(!empty($_POST)) {
 		fsst_save_global_configuration($_POST);
+		$update_message = "Settings Updated!";
 	}
 
 	$enabled_post_types = get_transient('st_enabled_post_types');
@@ -447,19 +499,20 @@ function fsst_get_select_options($name) {
 	return $choices;
 }
 
-function fsst_get_validation_result_field() {
-	return "
-		<div id='validation-message'>
-		</div>
-	";
+function fsst_get_validation_result_field($message = '') {
+	return "<div id='validation-message'>{$message}</div>";
 }
 
-function fsst_get_text_field($field_label, $field_name, $configuration) {
+function fsst_get_text_field($field_label, $field_name, $configuration, $description = '') {
 	$field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
+	if($description) {
+		$description = "<div class='description'>{$description}</div>";
+	}
 	return "
 		<div class='input-wrapper' id='wrapper-{$field_name}'>
 			<label for='field-{$field_name}'>{$field_label}</label>
-			<input id='field-{$field_name}' type='text' name='{$field_name}' value='{$field_value}' />
+			<input id='field-{$field_name}' type='text' name='{$field_name}' placeholder='{$field_label}' value='{$field_value}' />
+			{$description}
 		</div>
 	";
 }
@@ -520,12 +573,16 @@ function fsst_get_select_field($field_label, $field_name, $configuration) {
 		$options_markup = '';
 		foreach($options as $key => $label) {
 			if($field_value == $key) {
+				$selected_option = true;
 				$options_markup .= "<option value='{$key}' selected>{$label}</option>";
 			} else {
 				$options_markup .= "<option value='{$key}'>{$label}</option>";
 			}
 		}
-		$option_none = ($field_value) ? "<option value=''>None</option>" : "<option value='' selected>None</option>";
+
+		$option_none_label = ($post_id) ? 'Global Default' : 'None';
+		$option_none = ($field_value) ? "<option value=''>{$option_none_label}</option>" : "<option value='' selected>{$option_none_label}</option>";
+
 		return "
 			<div class='input-wrapper' id='wrapper-{$field_name}'>
 				<label for='field-{$field_name}'>{$field_label}</label>
@@ -587,11 +644,31 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 		return;
 	}
 
+	$api_key = $configuration['api_key'];
+	unset($configuration['api_key']);
+	if(isset($configuration['plan'])) {
+		unset($configuration['plan']);
+	}
+	if(isset($configuration['dv_code'])) {
+		unset($configuration['dv_code']);
+	}
+	if(isset($configuration['logo_url'])) {
+		$configuration['logo'] = $configuration['logo_url'];
+		unset($configuration['logo_url']);
+	}
+	if(isset($configuration['icon_url'])) {
+		$configuration['icon'] = $configuration['icon_url'];
+		unset($configuration['icon_url']);
+	}
+	
+	$json_configuration = json_encode($configuration);
 	$response = wp_remote_post(FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id, [
 		'method' => 'PUT',
 		'headers' => [
-			'sharethumb-api-key' => $configuration['api_key']
-		]
+			'sharethumb-api-key' => $api_key,
+			'Content-Type' => 'application/json'
+		],
+		'body' => $json_configuration
 	]);
 	
 	if($response && !is_wp_error($response)) {

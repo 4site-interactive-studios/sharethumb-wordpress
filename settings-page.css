@@ -9,7 +9,11 @@
 .configuration-wrapper * {
 	max-width: 100%;
 }
-
+.configuration-wrapper .image-upload img {
+    max-height: 150px;
+    width: auto;
+    max-width: 100%;
+}
 .instructions {
 	margin-bottom: 10px;
 }
@@ -30,6 +34,10 @@
 }
 #sharethumb-meta-box .input-wrapper {
 	padding: 0;
+}
+.configuration-wrapper .input-wrapper .description {
+	font-size: 10px;
+	font-style: italic;
 }
 .button, button {
 	width: fit-content;

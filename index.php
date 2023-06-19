@@ -17,8 +17,16 @@ define('FSST_REGENERATE_THUMBNAIL_URL', 'https://use.sharethumb.io/regenerate-th
 define('FSST_GET_THUMBNAIL_ID_URL', 'https://use.sharethumb.io/get-thumb-id');
 
 // This base URL must end in a slash
-define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/og/');
+define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/image/');
 
+
+add_action('wp_head',				'fsst_insert_metatags', 0);
+add_action('edit_post',				'fsst_regenerate_thumbnail_on_post_update', PHP_INT_MAX, 2);
+add_action('admin_menu',			'fsst_init_admin_menu');
+add_action('admin_enqueue_scripts',	'fsst_enqueue_scripts');
+add_action('add_meta_boxes',		'fsst_add_post_override_boxes', 10, 2);
+add_action('save_post',				'fsst_save_post_overrides', 10, 3);
+//add_action('admin_init',			'fsst_register_options_page');
 
 /**
  *  Metatag Management
@@ -29,7 +37,7 @@ define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/og/');
  **/
 
 // Output the necessary metatags to support sharethumb
-add_action('wp_head', function() {
+function fsst_insert_metatags() {
 	$st_config = fsst_get_configuration();
 
 	echo "\n";
@@ -87,11 +95,12 @@ add_action('wp_head', function() {
 
 	
 	$page_title = fsst_get_page_title();
+	$page_title_no_sep = fsst_get_title_no_sep(true);
 
 	global $wp;
 	$image_url = fsst_get_st_generated_image_url(home_url($wp->request));
 
-	echo "<meta name='st:title' content='{$page_title}'>\n";
+	echo "<meta name='st:title' content='{$page_title_no_sep}'>\n";
 
 	// We remove the original metatags in the wp_head filter and use these, instead
 	echo "<meta name='twitter:title' content='{$page_title}'>\n";
@@ -101,7 +110,7 @@ add_action('wp_head', function() {
 	echo "<meta property='og:image' content='{$image_url}'>\n";
 	echo "<meta property='og:image:width' content='1200' />\n";
 	echo "<meta property='og:image:height' content='630' />\n";
-}, 0);
+}
 
 function fsst_get_st_generated_image_url($page_url) {
 	$page_url = preg_replace("(^https?://)", "", $page_url);
@@ -115,25 +124,19 @@ function fsst_get_st_generated_image_url($page_url) {
 	return FSST_IMAGE_BASE_URL . $page_url;
 }
 
-// Mostly copied from wp_title().  Created my own version in case that function gets deprecated (there's a warning about it in the WP docs)
-function fsst_get_page_title() {
-	$sep = ' – ';
-	$seplocation = 'right';
-
-	if(is_front_page()) {
-		return get_bloginfo('name') . $sep . get_bloginfo('description');
-	}
-
+function fsst_get_title_no_sep($check_fp = false) {
 	global $wp_locale;
-
 	$m        = get_query_var('m');
 	$year     = get_query_var('year');
 	$monthnum = get_query_var('monthnum');
 	$day      = get_query_var('day');
 	$search   = get_query_var('s');
-	$title    = '';
 
-	$t_sep = '%WP_TITLE_SEP%'; // Temporary separator, for accurate flipping, if necessary.
+	$title = '';
+
+	if($check_fp && is_front_page()) {
+		$title = get_bloginfo('name');
+	}
 
 	if(is_single() ||(is_home() && ! is_front_page()) ||(is_page() && ! is_front_page())) {
 		$title = single_post_title('', false);
@@ -201,6 +204,21 @@ function fsst_get_page_title() {
 		$title = __('Page not found');
 	}
 
+	return $title;
+}
+
+// Mostly copied from wp_title().  Created my own version in case that function gets deprecated (there's a warning about it in the WP docs)
+function fsst_get_page_title() {
+	$sep = ' – ';
+	$seplocation = 'right';
+
+	if(is_front_page()) {
+		return get_bloginfo('name') . $sep . get_bloginfo('description');
+	}
+
+	$title = fsst_get_title_no_sep();
+	$t_sep = '%WP_TITLE_SEP%'; // Temporary separator, for accurate flipping, if necessary.
+
 	// removing the separator
 	$sep = '';
 	$prefix = '';
@@ -247,8 +265,7 @@ add_filter('wp_head', function() {
  * Regenerate thumbnails whenever a page/post is saved
  * 
  **/
-
-add_action('edit_post', function($post_id, $post) {
+function fsst_regenerate_thumbnail_on_post_update($post_id, $post) {
 	if(wp_is_post_revision($post_id) || wp_is_post_autosave($post_id) || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
 		return;
 	}
@@ -270,13 +287,16 @@ add_action('edit_post', function($post_id, $post) {
 
 	if($regenerate_thumbnail) {
 		$url = get_the_permalink($post_id);
-		$configuration = fsst_get_configuration();
-		$thumbnail_id = fsst_api_get_thumbnail_id($configuration, $url);
-		if($thumbnail_id) {
-			fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
+		$configuration = fsst_get_configuration($post_id);
+		if(is_array($configuration)) {
+			$configuration['title'] = get_the_title($post_id);
+			$thumbnail_id = fsst_api_get_thumbnail_id($configuration, $url);
+			if($thumbnail_id) {
+				fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
+			}
 		}
 	}
-}, PHP_INT_MAX, 2);
+}
 
 
 /**
@@ -329,11 +349,13 @@ function fsst_save_global_configuration($configuration) {
 	fsst_api_save_global_configuration($configuration);
 }
 
-function fsst_get_configuration() {
+function fsst_get_configuration($post_id = null) {
 	$configuration = fsst_get_global_configuration();
 
 	// check if we have any overrides
-	$post_id = get_queried_object_id();
+	if(!$post_id) {
+		$post_id = get_queried_object_id();		
+	}
 	if($post_id) {
 		$post_configuration = fsst_get_post_configuration($post_id);
 		foreach($post_configuration as $key => $value) {
@@ -415,8 +437,15 @@ function fsst_get_post_configuration($post_id) {
  * 
  **/
 
+// TODO
+/*
+function fsst_register_options_page() {
+	register_setting('sharethumb', 'api_key', []);
+}
+*/
+
 // Add our menu option; SVG borrowed from fontawesome (free icon)
-add_action('admin_menu', function() {
+function fsst_init_admin_menu() {
 	add_menu_page(
 		__('Settings', 'fsst'),
 		__('ShareThumb', 'fsst'),
@@ -425,7 +454,7 @@ add_action('admin_menu', function() {
 		'fsst_admin_page_settings',
 		'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuMi4xIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIyIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMzEzLjQgMzIuOWMyNiA1LjIgNDIuOSAzMC41IDM3LjcgNTYuNWwtMi4zIDExLjRjLTUuMyAyNi43LTE1LjEgNTIuMS0yOC44IDc1LjJINDY0YzI2LjUgMCA0OCAyMS41IDQ4IDQ4YzAgMjUuMy0xOS41IDQ2LTQ0LjMgNDcuOWM3LjcgOC41IDEyLjMgMTkuOCAxMi4zIDMyLjFjMCAyMy40LTE2LjggNDIuOS0zOC45IDQ3LjFjNC40IDcuMiA2LjkgMTUuOCA2LjkgMjQuOWMwIDIxLjMtMTMuOSAzOS40LTMzLjEgNDUuNmMuNyAzLjMgMS4xIDYuOCAxLjEgMTAuNGMwIDI2LjUtMjEuNSA0OC00OCA0OEgyOTQuNWMtMTkgMC0zNy41LTUuNi01My4zLTE2LjFsLTM4LjUtMjUuN0MxNzYgNDIwLjQgMTYwIDM5MC40IDE2MCAzNTguM1YzMjAgMjcyIDI0Ny4xYzAtMjkuMiAxMy4zLTU2LjcgMzYtNzVsNy40LTUuOWMyNi41LTIxLjIgNDQuNi01MSA1MS4yLTg0LjJsMi4zLTExLjRjNS4yLTI2IDMwLjUtNDIuOSA1Ni41LTM3Ljd6TTMyIDE5Mkg5NmMxNy43IDAgMzIgMTQuMyAzMiAzMlY0NDhjMCAxNy43LTE0LjMgMzItMzIgMzJIMzJjLTE3LjcgMC0zMi0xNC4zLTMyLTMyVjIyNGMwLTE3LjcgMTQuMy0zMiAzMi0zMnoiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjwvc3ZnPg=='
 	);
-});
+}
 
 function fsst_admin_page_settings() {
 	$all_post_types = get_post_types([], 'objects');
@@ -452,7 +481,7 @@ function fsst_admin_page_settings() {
 }
 
 // Enqueue the scripts & styles for our settings page
-add_action("admin_enqueue_scripts", function($hook) {
+function fsst_enqueue_scripts($hook) {
 	if($hook === 'toplevel_page_sharethumb') {
 		wp_enqueue_media();
 		wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
@@ -461,7 +490,7 @@ add_action("admin_enqueue_scripts", function($hook) {
 		wp_enqueue_script('settings-page-js', plugins_url('settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2']);
 		wp_enqueue_style('settings-page-css', plugins_url('settings-page.css', __FILE__));
 	}
-});
+}
 
 // Fetch the drop-down options from the ShareThumb public endpoint
 function fsst_fetch_options($name) {
@@ -723,7 +752,7 @@ function fsst_api_save_global_configuration($configuration) {
 	]);
 }
 
-add_action('add_meta_boxes', function($post_type, $post) {
+function fsst_add_post_override_boxes($post_type, $post) {
 	$enabled_post_types = get_transient('st_enabled_post_types');
 	add_meta_box(
 		'sharethumb-meta-box',
@@ -732,8 +761,9 @@ add_action('add_meta_boxes', function($post_type, $post) {
 		$enabled_post_types,
 		'side',
 		'default'
-	);		
-}, 10, 2);
+	);
+}
+
 
 function fsst_render_metabox($post) {
 	wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
@@ -744,7 +774,8 @@ function fsst_render_metabox($post) {
 	echo ob_get_clean();
 }
 
-add_action('save_post', function($post_id, $post, $update) {
+
+function fsst_save_post_overrides($post_id, $post, $update) {
 	if(empty($_POST['sharethumb_nonce']) || !wp_verify_nonce($_POST['sharethumb_nonce'], 'sharethumb_metabox')) {
 		return $post_id;
 	}
@@ -763,4 +794,4 @@ add_action('save_post', function($post_id, $post, $update) {
 	}
 
 	fsst_save_post_configuration($post_id);
-}, 10, 3);
+}

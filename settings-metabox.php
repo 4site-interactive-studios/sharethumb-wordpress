@@ -39,6 +39,34 @@
 	</div>
 </div>
 <script>
+	let save_post_timeout = null;
+
+	function fsst_save_post_hook() {
+		save_post_timeout = null;
+		const img = document.querySelector('img.st-generated-image');
+		if(img) {
+			const src_parts = img.src.split('?');
+			if(src_parts[0]) {
+				const new_src = src_parts[0] + '?' + Math.floor(Math.random() * 10000);
+				img.src = new_src;
+			}
+		}
+	}
+
+	wp.data.subscribe(function() {
+		const is_saving_post = wp.data.select('core/editor').isSavingPost();
+		const is_autosaving_post = wp.data.select('core/editor').isAutosavingPost();
+
+		if(is_saving_post && !is_autosaving_post) {
+			// We see a lot of save_post events -- we only want to save once, however
+			if(save_post_timeout) {
+				clearTimeout(save_post_timeout);
+			}
+			save_post_timeout = setTimeout(fsst_save_post_hook, 4000);
+		}
+	});
+</script>
+<script>
 <?php include 'settings-page.js'; ?>
 </script>
 <style>

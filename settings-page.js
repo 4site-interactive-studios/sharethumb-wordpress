@@ -1,77 +1,33 @@
 jQuery(function ($) {
-  // We want to ensure we validate the API key at least once.
-  // This can happen if the api key input receives a blur event, or when saving the page.
-  let api_key_validation_run = false;
+  // Initialize the Select2 fields, except for the theme field
+  $(".sharethumb-settings-row:not(.theme) select.select2").select2({
+    allowClear: true,
+    placeholder: "--",
+  });
 
-  if($("#validation-message").text()) {
-    setTimeout(function(){ $("#validation-message").text(""); }, 3000);
-  }
+  // Initialize the theme field, and keep track of it for showing/hiding the custom theme text field
+  const theme_select = $(".sharethumb-settings-row.theme select.select2").select2({
+    allowClear: true,
+    placeholder: "--",
+  });
 
-  function fsst_clear_validation_result() {
-    $("#validation-message").removeClass("validated");
-    $("#validation-message").removeClass("unvalidated");
-    $("#validation-message").text("");
-  }
-
-  function fsst_show_validation_result(result, message) {
-    if (result) {
-      $("#field-api_key").addClass("validated");
-      $("#field-api_key").removeClass("unvalidated");
-      $("#validation-message").addClass("validated");
-      $("#validation-message").removeClass("unvalidated");
+  function showOrHideCustomThemeField() {
+    const selected_theme = theme_select.val();
+    if(selected_theme == 'custom') {
+      $(".sharethumb-settings-row.custom-theme").addClass('show');
     } else {
-      $("#field-api_key").addClass("unvalidated");
-      $("#field-api_key").removeClass("validated");
-      $("#validation-message").removeClass("validated");
-      $("#validation-message").addClass("unvalidated");
+      $(".sharethumb-settings-row.custom-theme").removeClass('show');
     }
-
-    $("#validation-message").text(message);
-    $("#field-api_key").removeClass("validating");
   }
 
-  function fsst_call_api(url, headers, body, callback) {
-    $.ajax(url, {
-      headers: headers,
-      success: function (response) {
-        callback(true, response);
-      },
-      error: function (response) {
-        callback(false, response);
-      },
-    });
-  }
+  theme_select.on('select2:select', function (e) {
+    showOrHideCustomThemeField();
+  });
+  showOrHideCustomThemeField();
 
-  function fsst_validate_api_key(api_key, callback) {
-    $(this).addClass("validating");
-    fsst_clear_validation_result();
-    fsst_call_api(
-      "https://use.sharethumb.io/validate-api-key",
-      { "sharethumb-api-key": api_key },
-      {},
-      function (result, response) {
-        if (result && response && response.isValid) {
-          fsst_show_validation_result(
-            true,
-            "API Key Validation Result: Success"
-          );
-          // update plan hidden value
-          $("input[name=plan]").val(response.plan);
-        } else if (response && response.responseJSON) {
-          fsst_show_validation_result(
-            false,
-            "API Key Validation Result: " + response.responseJSON.message
-          );
-          // clear plan hidden value
-          $("input[name=plan]").val("");
-        }
-        api_key_validation_run = true;
-        $(this).removeClass("validating");
-        if (callback) callback(result);
-      }
-    );
-  }
 
+
+  // Initialize Image fields
   $("body").on("click", ".image-upload", function (e) {
     e.preventDefault();
     const button = $(this);
@@ -102,6 +58,17 @@ jQuery(function ($) {
           button.html('<img src="' + url + '">'); // add image instead of "Upload Image"
           button.next().show(); // show "Remove image" link
           button.next().next().val(attachment.id); // Populate the hidden field with image ID
+
+          const url_field_id = button.next().next().data('url-field-id');
+          if(url_field_id) {
+            let metatag_url = attachment.url;
+            if(attachment.sizes.hasOwnProperty("large")) {
+              metatag_url = attachment.sizes.large.url;
+            } else if(attachment.sizes.hasOwnProperty("medium")) {
+              metatag_url = attachment.sizes.medium.url;
+            }
+            $('#' + url_field_id).val(metatag_url);            
+          }
         }
       });
 
@@ -124,34 +91,5 @@ jQuery(function ($) {
     const button = $(this);
     button.next().val(""); // emptying the hidden field
     button.hide().prev().addClass("button").html("Upload image"); // replace the image with text
-  });
-
-  $(".configuration-wrapper select").select2({
-    allowClear: true,
-    placeholder: "--",
-  });
-
-  $("#field-theme").on("select2:select", function (e) {
-    $(".theme-outer-wrapper").attr("data-theme", e.params.data.id);
-  });
-
-  $("#field-api_key").blur(function (e) {
-    const api_key = $(this).val();
-    if (api_key) {
-      fsst_validate_api_key(api_key, null);
-    }
-  });
-
-  $("#st-settings-form").submit(function (e) {
-    const api_key = $("#field-api_key").val();
-    if (api_key) {
-      // we need to verify the api key
-      if (!api_key_validation_run) {
-        e.preventDefault();
-        fsst_validate_api_key(api_key, function (result) {
-          $("#st-settings-form").submit();
-        });
-      }
-    }
   });
 });

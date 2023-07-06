@@ -57,7 +57,9 @@ function fsst_enqueue_scripts($hook) {
 
 // Register our settings to be displayed on the settings page, using WP Settings API
 function fsst_register_settings() {
-	register_setting('sharethumb', 'sharethumb_options');
+	register_setting('sharethumb', 'sharethumb_options', [
+		'sanitize_callback' => 'fsst_sanitize_configuration'
+	]);
 
 	add_settings_section(
 		'sharethumb_section_general',
@@ -181,49 +183,49 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'foreground',
-		__('Foreground', 'sharethumb'),
+		'font_color',
+		__('Font Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'sharethumb',
 		'sharethumb_section_general',
 		[
-			'label_for' => 'foreground',
+			'label_for' => 'font_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
 
 	add_settings_field(
-		'background',
-		__('Background', 'sharethumb'),
+		'background_color',
+		__('Background Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'sharethumb',
 		'sharethumb_section_general',
 		[
-			'label_for' => 'background',
+			'label_for' => 'background_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
 
 	add_settings_field(
-		'accent',
+		'accent_color',
 		__('Accent', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'sharethumb',
 		'sharethumb_section_general',
 		[
-			'label_for' => 'accent',
+			'label_for' => 'accent_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
 
 	add_settings_field(
-		'secondary',
+		'secondary_color',
 		__('Secondary', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'sharethumb',
 		'sharethumb_section_general',
 		[
-			'label_for' => 'secondary',
+			'label_for' => 'secondary_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
@@ -237,9 +239,41 @@ function fsst_register_settings() {
 		[
 			'label_for' => 'post_types',
 			'class' => 'sharethumb-settings-row checkboxes',
-			'options' => fsst_get_overridable_post_types()
+			'options' => fsst_get_overridable_post_types(), 
+			'description' => 'Any posts that are enabled for overrides will permit the general ShareThumb settings to be overridden for that individual content.  Example: If you enable ShareThumb overrides for posts, any and all posts will have a new sidebar section when you edit it, "ShareThumb Overrides", where you can override the colors, font, theme, logo, and icon.'
 		]
 	);
+}
+
+function fsst_sanitize_configuration($configuration) {
+	if(!empty($configuration['api_key'])) {
+
+		$api_key = $configuration['api_key'];
+		$result = fsst_api_validate_key($api_key);
+		if($result) {
+			add_settings_error('sharethumb_messages', 'sharethumb_message', __('ShareThumb API key is valid.', 'sharethumb'), 'updated');
+
+			// save the configuration to sharethumb			
+			$result = fsst_api_save_global_configuration($configuration);
+			if($result === true) {
+				add_settings_error('sharethumb_messages', 'sharethumb_message', __('Settings updated on ShareThumb.', 'sharethumb'), 'updated');
+			} else {
+				if($result === false) {
+					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb'), 'error');
+				} else {
+					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb') . " {$result}", 'error');
+				}
+			}
+
+		} else {
+
+			add_settings_error('sharethumb_messages', 'sharethumb_message', __('ShareThumb API key is invalid.', 'sharethumb'), 'error');
+			$configuration['api_key'] = '';
+
+		}
+	}
+
+	return $configuration;
 }
 
 function fsst_get_settings_hidden_field_html($args) {
@@ -263,10 +297,6 @@ function fsst_get_settings_checkboxes_field_html($args) {
 	$field_name = "sharethumb_options[{$field_id}][]";
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
-	if($field_description) {
-		$field_description = "<div class='description'>{$field_description}</div>";
-	}
-
 	$field_markup = '';
 
 	foreach($args['options'] as $key => $label) {
@@ -280,8 +310,10 @@ function fsst_get_settings_checkboxes_field_html($args) {
 	}
 
 	echo "
-		{$field_markup}
-		{$field_description}
+		<div class='column-flex'>
+			<div class='options'>{$field_markup}</div>
+			<div class='description'>{$field_description}</div>
+		</div>
 	";
 }
 
@@ -399,29 +431,6 @@ function fsst_render_settings_page_html() {
 
 	if(isset($_GET['settings-updated'])) {
 		add_settings_error('sharethumb_messages', 'sharethumb_message', __('Settings saved locally.', 'sharethumb'), 'updated');
-
-		$configuration = get_option('sharethumb_options');
-		$api_key = $configuration['api_key'];
-		if($api_key) {
-			$result = fsst_api_validate_key($api_key);
-			if($result) {
-				add_settings_error('sharethumb_messages', 'sharethumb_message', __('ShareThumb API key is valid.', 'sharethumb'), 'updated');
-
-				// save the configuration to sharethumb
-				$result = fsst_api_save_global_configuration($configuration);
-				if($result === true) {
-					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Settings updated on ShareThumb.', 'sharethumb'), 'updated');
-				} else {
-					if($result === false) {
-						add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb'), 'error');
-					} else {
-						add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb') . " {$result}", 'error');
-					}
-				}
-			} else {
-				add_settings_error('sharethumb_messages', 'sharethumb_message', __('ShareThumb API key is invalid.', 'sharethumb'), 'error');
-			}
-		}
 	}
 	settings_errors('sharethumb_messages');
 

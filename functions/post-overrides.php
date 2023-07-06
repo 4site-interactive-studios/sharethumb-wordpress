@@ -33,19 +33,24 @@ function fsst_get_post_configuration($post_id) {
 		$post_configuration = [];
 	}
 
+	$global_configuration = get_option('sharethumb_options');
+	$post_configuration['api_key_set'] = !empty($global_configuration['api_key']);
+
 	return $post_configuration;
 }
 
 function fsst_add_post_override_boxes($post_type, $post) {
-	$enabled_post_types = get_transient('st_enabled_post_types');
-	add_meta_box(
-		'sharethumb-meta-box',
-		__('ShareThumb Overrides'),
-		'fsst_render_metabox_html',
-		$enabled_post_types,
-		'side',
-		'default'
-	);
+	$configuration = get_option('sharethumb_options');
+	if(is_array($configuration['post_types']) && count($configuration['post_types'])) {
+		add_meta_box(
+			'sharethumb-meta-box',
+			__('ShareThumb Overrides'),
+			'fsst_render_metabox_html',
+			$configuration['post_types'],
+			'side',
+			'default'
+		);		
+	}
 }
 
 function fsst_render_metabox_html($post) {
@@ -228,10 +233,10 @@ function fsst_get_default_post_configuration() {
 		'theme' => '',		
 		'theme_custom' => '',
 		'font' => '',		
-		'foreground' => '',	
-		'background' => '',	
-		'accent' => '',		
-		'secondary' => '',	
+		'font_color' => '',	
+		'background_color' => '',	
+		'accent_color' => '',		
+		'secondary_color' => '',	
 		'icon_url' => '',	
 		'logo_url' => ''
 	];

@@ -1,20 +1,26 @@
-<?php if(!defined('ABSPATH')) { exit; } ?>
-<?php global $post; ?>
-<?php $configuration = fsst_get_post_configuration($post->ID); ?>
-<?php wp_nonce_field('sharethumb_metabox', 'sharethumb_nonce'); ?>
+<?php 
+	if(!defined('ABSPATH')) { exit; }
+	global $post;
+	$configuration = fsst_get_post_configuration($post->ID);
+	wp_nonce_field('sharethumb_metabox', 'sharethumb_nonce'); 
+?>
 <div class='post-configuration-wrapper'>
 	<?php if($post->ID): ?>
 	<?php 
 		$url = get_the_permalink($post->ID);
 		$url = str_replace(['http://', 'https://'], '', $url);
 		$url = trim($url, '/');
-		$image_url = fsst_get_st_generated_image_url($url);
+		$image_url = fsst_get_st_generated_image_url($url, true);
 	?>
 	<img src='<?php echo $image_url; ?>' class='st-generated-image' onerror="this.style.visibility='hidden'" />
 	<?php endif; ?>
 
 	<div class='sharethumb-settings-row instructions'>
 		Fields are optional.  If left empty, will use the globally configured options.
+		<?php if(empty($configuration['api_key_set'])): ?>
+			<br><br>
+			We can update your thumbs automatically if you <a href='/wp-admin/admin.php?page=sharethumb' target='_blank'>set an API key</a>.
+		<?php endif; ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
@@ -38,16 +44,16 @@
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Foreground', 'foreground', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Font Color', 'font_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Background', 'background', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Background Color', 'background_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Accent', 'accent', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Accent Color', 'accent_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Secondary', 'secondary', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Secondary Color', 'secondary_color', $configuration); ?>
 	</div>
 </div>
 <script>

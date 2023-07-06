@@ -20,7 +20,8 @@ define('FSST_GET_THUMBNAIL_ID_URL', 'https://use.sharethumb.io/get-thumb-id');
 define('FSST_VALIDATE_KEY_URL', 'https://use.sharethumb.io/validate-api-key');
 
 // This base URL must end in a slash
-define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/image/');
+define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/image/');  // Used for override image preview
+define('FSST_SHARE_IMAGE_BASE_URL', 'https://use.sharethumb.io/og/');  // Used for actual og:imge metatag on pages
 
 // Registers & renders the global ShareThumb settings page
 include 'functions/settings-page.php';

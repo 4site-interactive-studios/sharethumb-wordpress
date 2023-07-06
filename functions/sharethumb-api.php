@@ -147,6 +147,9 @@ function fsst_api_save_global_configuration($configuration) {
 		$configuration['icon'] = $configuration['icon_url'];
 		unset($configuration['icon_url']);
 	}
+	if(isset($configuration['post_types'])) {
+		unset($configuration['post_types']);
+	}
 
 	$json_configuration = json_encode($configuration);
 	$response = wp_remote_post(FSST_SETTINGS_URL, [

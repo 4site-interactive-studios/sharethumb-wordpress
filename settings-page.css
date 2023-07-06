@@ -1,14 +1,11 @@
 .sharethumb-settings-row .select2-container, 
 .sharethumb-settings-row input[type='text'], 
-.sharethumb-settings-row .description  {
+.sharethumb-settings-row .description,
+.sharethumb-settings-row .options {
 	width: 300px!important;
 	max-width: 100%!important;
 }
 
-.sharethumb-settings-row.checkboxes td:nth-child(2) {
-	display: flex;
-	gap: 20px;
-}
 .sharethumb-settings-row.hidden {
 	display: none;
 }
@@ -18,6 +15,25 @@
 .sharethumb-settings-row.custom-theme.show {
 	display: table-row;
 }
+
+.sharethumb-settings-row .column-flex {
+	display: flex;
+	gap: 10px;
+	flex-direction: column;
+}
+.sharethumb-settings-row .options {
+	display: flex;
+	gap: 20px;
+	flex-wrap: wrap;
+}
+
+.sharethumb-settings-row .description {
+	opacity: 0.8;
+	padding: 5px;
+	font-size: 12px;	
+}
+
+
 
 .post-configuration-wrapper .sharethumb-settings-row {
 	margin-bottom: 10px;

@@ -59,17 +59,17 @@ function fsst_insert_metatags() {
 			echo "<meta property='st:theme_custom' content='{$st_config['theme_custom']}'>\n";
 		}
 	}
-	if(!empty($st_config['foreground'])) {
-		echo "<meta property='st:font_color' content='{$st_config['foreground']}'>\n";
+	if(!empty($st_config['font_color'])) {
+		echo "<meta property='st:font_color' content='{$st_config['font_color']}'>\n";
 	}
-	if(!empty($st_config['background'])) {
-		echo "<meta property='st:background_color' content='{$st_config['background']}'>\n";
+	if(!empty($st_config['background_color'])) {
+		echo "<meta property='st:background_color' content='{$st_config['background_color']}'>\n";
 	}
-	if(!empty($st_config['accent'])) {
-		echo "<meta property='st:accent_color' content='{$st_config['accent']}'>\n";
+	if(!empty($st_config['accent_color'])) {
+		echo "<meta property='st:accent_color' content='{$st_config['accent_color']}'>\n";
 	}
-	if(!empty($st_config['secondary'])) {
-		echo "<meta property='st:secondary_color' content='{$st_config['secondary']}'>\n";
+	if(!empty($st_config['secondary_color'])) {
+		echo "<meta property='st:secondary_color' content='{$st_config['secondary_color']}'>\n";
 	}
 
 	$featured_image_url = get_the_post_thumbnail_url(null, 'large');
@@ -112,7 +112,7 @@ function fsst_insert_metatags() {
 	echo "<meta property='og:image:height' content='630' />\n";
 }
 
-function fsst_get_st_generated_image_url($page_url) {
+function fsst_get_st_generated_image_url($page_url, $is_preview = false) {
 	$page_url = preg_replace("(^https?://)", "", $page_url);
 	// Add a random number to the end of the URL to force a refresh of the image
 	if(strpos($page_url, '?') !== false) {
@@ -121,7 +121,12 @@ function fsst_get_st_generated_image_url($page_url) {
 		$page_url .= '?';
 	}
 	$page_url .= rand(1000, 999999);
-	return FSST_IMAGE_BASE_URL . $page_url;
+	if($is_preview) {
+		return FSST_IMAGE_BASE_URL . $page_url;
+	} else {
+		return FSST_SHARE_IMAGE_BASE_URL . $page_url;	
+	}
+	
 }
 
 function fsst_get_title_no_sep($check_fp = false) {

@@ -51,16 +51,16 @@ function fsst_api_fetch_options($name) {
     return $options;
 }
 
-function fsst_api_get_thumbnail_id($configuration, $post_url) {
-	// don't bother if we don't have an API Key
-	if(empty($configuration['api_key'])) {
+function fsst_api_get_thumbnail_id($api_key, $post_url) {
+	// don't bother if we don't have an API Key or a post_url
+	if(!$api_key || !$post_url) {
 		return;
 	}
 
 	$query_string = http_build_query(['url' => $post_url]);
 	$response = wp_remote_get(FSST_GET_THUMBNAIL_ID_URL . '?' . $query_string, [
 		'headers' => [
-			'sharethumb-api-key' => $configuration['api_key']
+			'sharethumb-api-key' => $api_key
 		]
 	]);
 

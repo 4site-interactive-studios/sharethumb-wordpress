@@ -20,9 +20,8 @@
 
 if(!defined('ABSPATH')) { exit; }
 
-add_action('edit_post',				'fsst_regenerate_thumbnail_on_post_update', PHP_INT_MAX, 2);
 add_action('add_meta_boxes',		'fsst_add_post_override_boxes', 10, 2);
-add_action('save_post',				'fsst_save_post_override_configuration', 10, 3);
+add_action('save_post',				'fsst_save_post_override_configuration', PHP_INT_MAX, 3);
 
 function fsst_get_post_configuration($post_id) {
 	$post_configuration = get_post_meta($post_id, 'sharethumb');
@@ -87,7 +86,7 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 	$default_configuration = fsst_get_default_post_configuration();
 	$post_configuration = [];
 
-	foreach($default_configuration as $key => $value) {
+	foreach($default_configuration as $key => $value) {		
 		if(isset($_POST[$key])) {
 			$post_configuration[$key] = $_POST[$key];
 		} else {
@@ -99,44 +98,14 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 	$post_configuration['icon_url'] = ($post_configuration['icon']) ? wp_get_attachment_image_url($post_configuration['icon'], 'large') : '';
 
 	update_post_meta($post_id, 'sharethumb', $post_configuration);
-}
 
-
-
-// Regenerate thumbnails whenever a page/post is saved
-function fsst_regenerate_thumbnail_on_post_update($post_id, $post) {
-	if(wp_is_post_revision($post_id) || wp_is_post_autosave($post_id) || (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)) {
-		return;
-	}
-
-	// Oftentimes, saving a post might trigger an update function multiple times -- we want to ensure we're not making multiple calls to the API
-	$regenerate_thumbnail = false;
-	$transient_key = "st_post_{$post_id}";
-	$now = time();
-	$last_regenerate = get_transient($transient_key);
-	if($last_regenerate) {
-		$diff = $now - $last_regenerate;
-		if($diff > 30) {
-			$regenerate_thumbnail = true;
-		}
-	} else {		
-		$regenerate_thumbnail = true;
-	}
-	set_transient($transient_key, $now, 30);
-
-	if($regenerate_thumbnail) {
-		$url = get_the_permalink($post_id);
-		$configuration = fsst_get_configuration($post_id);
-		if(is_array($configuration)) {
-			$configuration['title'] = get_the_title($post_id);
-			$thumbnail_id = fsst_api_get_thumbnail_id($configuration, $url);
-			if($thumbnail_id) {
-				fsst_api_regenerate_thumbnail($configuration, $thumbnail_id);
-			}
-		}
+	$configuration = get_option('sharethumb_options');
+	$thumbnail_id = fsst_api_get_thumbnail_id($configuration['api_key'], get_the_permalink($post_id));
+	if($thumbnail_id) {
+		$post_configuration['title'] = $post->post_title;
+		fsst_api_regenerate_thumbnail($post_configuration, $thumbnail_id);
 	}
 }
-
 
 function fsst_get_overrides_text_field_html($field_label, $field_name, $configuration, $description = '') {
     $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';

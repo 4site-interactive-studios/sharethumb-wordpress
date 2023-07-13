@@ -36,7 +36,7 @@
 	</div>
 
 	<div class='sharethumb-settings-row custom-theme'>
-		<?php echo fsst_get_overrides_text_field_html('Custom Theme', 'custom_theme', $configuration); ?>
+		<?php echo fsst_get_overrides_text_field_html('Custom Theme', 'theme_custom', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>

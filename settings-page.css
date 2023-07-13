@@ -37,6 +37,7 @@
 
 .post-configuration-wrapper .sharethumb-settings-row {
 	margin-bottom: 10px;
+	display: block!important;
 }
 .post-configuration-wrapper .sharethumb-settings-row label {
 	display: block;

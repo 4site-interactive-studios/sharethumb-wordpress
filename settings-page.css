@@ -1,9 +1,14 @@
-.sharethumb-settings-row .select2-container, 
+.sharethumb-settings-row .select2-container,
 .sharethumb-settings-row input[type='text'], 
 .sharethumb-settings-row .description,
+.sharethumb-settings-row .select2
 .sharethumb-settings-row .options {
+	width: 300px;
+	max-width: 100%;
+}
+
+.sharethumb-settings-row .select2-container {
 	width: 300px!important;
-	max-width: 100%!important;
 }
 
 .sharethumb-settings-row.hidden {
@@ -37,10 +42,14 @@
 
 .post-configuration-wrapper .sharethumb-settings-row {
 	margin-bottom: 10px;
-	display: block!important;
+	display: block;
 }
 .post-configuration-wrapper .sharethumb-settings-row label {
 	display: block;
 }
-.post-configuration-wrapper .sharethumb-settings-row input {
+.post-configuration-wrapper .sharethumb-settings-row.custom-theme {
+	display: none;
+} 
+.post-configuration-wrapper .sharethumb-settings-row.custom-theme.show {
+	display: block;
 }

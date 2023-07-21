@@ -103,6 +103,11 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 	$thumbnail_id = fsst_api_get_thumbnail_id($configuration['api_key'], get_the_permalink($post_id));
 	if($thumbnail_id) {
 		$post_configuration['title'] = $post->post_title;
+		foreach($configuration as $key => $value) {
+			if(empty($post_configuration[$key])) {
+				$post_configuration[$key] = $value;
+			}
+		}
 		fsst_api_regenerate_thumbnail($post_configuration, $thumbnail_id);
 	}
 }

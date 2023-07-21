@@ -6,11 +6,27 @@
  * fsst_api_fetch_options : returns all the available fonts or themes that are valid for use in the configuration
  * fsst_api_get_thumbnail_id : returns the ID for a thumbnail for a particular page
  * fsst_api_regenerate_thumbnail : regenerates the thumbnail for a particular page
- * fsst_api_save_global_configuration : updates the configuration on the ShareThumb website to match the locally-saved configuratino
+ * fsst_api_save_global_configuration : updates the configuration on the ShareThumb website to match the locally-saved configuration
+ * fsst_api_get_permitted_keys : helper function returning the keys permitted for calls to the API
  * 
  **/
 
 if(!defined('ABSPATH')) { exit; }
+
+
+function fsst_api_get_permitted_keys() {
+	return [
+		'logo', 
+		'icon', 
+		'theme', 
+		'theme_custom', 
+		'font',
+		'font_color',
+		'background_color',
+		'accent_color',
+		'secondary_color'
+	];
+}
 
 function fsst_api_validate_key($api_key) {
 	if(!$api_key) {
@@ -81,13 +97,7 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 	}
 
 	$api_key = $configuration['api_key'];
-	unset($configuration['api_key']);
-	if(isset($configuration['plan'])) {
-		unset($configuration['plan']);
-	}
-	if(isset($configuration['dv_code'])) {
-		unset($configuration['dv_code']);
-	}
+
 	if(isset($configuration['logo_url'])) {
 		$configuration['logo'] = $configuration['logo_url'];
 		unset($configuration['logo_url']);
@@ -96,7 +106,16 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 		$configuration['icon'] = $configuration['icon_url'];
 		unset($configuration['icon_url']);
 	}
-	
+
+	$permitted_keys = fsst_api_get_permitted_keys();
+	foreach($configuration as $key => $value) {
+		if(!in_array($key, $permitted_keys)) {
+			unset($configuration[$key]);
+		}
+	}
+
+	error_log('thumb regen config: ' . print_r($configuration,true));
+
 	$json_configuration = json_encode($configuration);
 	$response = wp_remote_post(FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id, [
 		'method' => 'PUT',

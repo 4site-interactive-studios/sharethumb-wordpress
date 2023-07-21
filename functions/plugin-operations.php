@@ -5,7 +5,6 @@ register_activation_hook(FSST_PLUGIN_PATH . 'index.php', 'fsst_activate');
 register_deactivation_hook(FSST_PLUGIN_PATH . 'index.php', 'fsst_deactivate');
 
 function fsst_activate() {
-    //fsst_register_settings();
     update_option('sharethumb_options', [
         'api_key' => '',
         'dv_code' => '',

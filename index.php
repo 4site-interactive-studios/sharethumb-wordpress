@@ -10,8 +10,6 @@
 
 if(!defined('ABSPATH')) { exit; }
 
-define('FSST_PLUGIN_PATH', plugin_dir_path(__FILE__));
-
 define('FSST_FONT_URL', 'https://api.sharethumb.app/fonts');
 define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
 define('FSST_SETTINGS_URL', 'https://use.sharethumb.io/save-settings');
@@ -33,3 +31,19 @@ include 'functions/metatags-insert.php';
 include 'functions/sharethumb-api.php';
 // Activation & Deactivation hooks
 include 'functions/plugin-operations.php';
+// Plugin Updating
+include 'functions/plugin-updates.php';
+
+// For convenience, defining these here so that we can use __FILE__ for plugin functions
+function fsst_plugin_data() {
+    if(!function_exists('get_plugin_data')) {
+        require_once(ABSPATH . 'wp-admin/includes/plugin.php');
+    }
+    return get_plugin_data(__FILE__);
+}
+function fsst_plugin_basename() {
+    return plugin_basename(__FILE__);
+}
+function fsst_plugin_path() {
+    return plugin_dir_path(__FILE__);
+}

@@ -61,7 +61,7 @@ function fsst_plugin_popup($result, $action, $args) {
                 'author' => $plugin_data['AuthorName'],
                 'author_profile' => $plugin_data['AuthorURI'],
                 'last_updated' => $response['published_at'],
-                'homepage' => $response['PluginURI'],
+                'homepage' => plugin_data['PluginURI'],
                 'short_description' => $plugin_data['Description'],
                 'sections' => [
                     'Description' => $plugin_data['Description'],

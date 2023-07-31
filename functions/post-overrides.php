@@ -60,7 +60,7 @@ function fsst_render_metabox_html($post) {
 	wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
 
 	ob_start();
-	include FSST_PLUGIN_PATH . '/template-post-override-settings.php';
+	include fsst_plugin_path() . '/template-post-override-settings.php';
 	echo ob_get_clean();
 }
 
@@ -102,12 +102,12 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 	$configuration = get_option('sharethumb_options');
 	$thumbnail_id = fsst_api_get_thumbnail_id($configuration['api_key'], get_the_permalink($post_id));
 	if($thumbnail_id) {
-		$post_configuration['title'] = $post->post_title;
 		foreach($configuration as $key => $value) {
 			if(empty($post_configuration[$key])) {
 				$post_configuration[$key] = $value;
 			}
 		}
+		$post_configuration['title'] = get_the_title($post_id);
 		fsst_api_regenerate_thumbnail($post_configuration, $thumbnail_id);
 	}
 }

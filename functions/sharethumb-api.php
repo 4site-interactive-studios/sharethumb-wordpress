@@ -24,7 +24,8 @@ function fsst_api_get_permitted_keys() {
 		'font_color',
 		'background_color',
 		'accent_color',
-		'secondary_color'
+		'secondary_color',
+		'title'
 	];
 }
 
@@ -113,8 +114,6 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 			unset($configuration[$key]);
 		}
 	}
-
-	error_log('thumb regen config: ' . print_r($configuration,true));
 
 	$json_configuration = json_encode($configuration);
 	$response = wp_remote_post(FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id, [

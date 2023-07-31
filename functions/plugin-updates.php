@@ -2,10 +2,10 @@
 /**
  *  Plugin Updates
  * 
- * fsst_get_latest_release_info
- * fsst_add_remote_plugin_version
- * fsst_plugin_popup
- * fsst_after_update
+ * fsst_get_latest_release_info : fetches plugin information
+ * fsst_add_remote_plugin_version : fetches the latst remote release version and sets it in the WP plugin versions transient
+ * fsst_plugin_popup : returns the array of plugin info to the WP site
+ * fsst_after_update : ensures that the plugin is enabled if it was enabled prior to the update process
  * 
  **/
 

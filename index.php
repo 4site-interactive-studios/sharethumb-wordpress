@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: ShareThumb Wordpress Plugin
+ * Plugin Name: ShareThumb for Wordpress
  * Version: 1.0.8
  * Plugin URI: https://sharethumb.io/
  * Description: Configure the ShareThumb service directly via your own website.

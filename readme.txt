@@ -1,13 +1,13 @@
-=== sharethumb-wordpress ===
+=== sharethumb ===
 Tags: ShareThumb
 Requires at least: 5.9
 Tested up to: 6.2.2
 Requires PHP: 7.4
 
-ShareThumb for Wordpress - Automated social media share images for your website
+ShareThumb - Automated social media share images for your website
 
 == Description ==
-ShareThumb for Wordpress - Automated social media share images for your website
+ShareThumb - Automated social media share images for your website
 
 After installation, update the settings page at /wp-admin/admin.php?page=sharethumb.  You can find your API Key and Domain Validation key at https://app.sharethumb.io/dashboard. Any changes to the settings page will update your settings in your ShareThumb account.
 

@@ -26,7 +26,7 @@ add_action('save_post',				'fsst_save_post_override_configuration', PHP_INT_MAX,
 function fsst_get_post_configuration($post_id) {
 	$post_configuration = get_post_meta($post_id, 'sharethumb');
 
-	if(is_array($post_configuration[0])) {
+	if(isset($post_configuration[0]) && is_array($post_configuration[0])) {
 		$post_configuration = $post_configuration[0];
 	} else if(!is_array($post_configuration)) {
 		$post_configuration = [];
@@ -174,7 +174,7 @@ function fsst_get_overrides_select_field_html($field_label, $field_name, $config
             }
         }
 
-        $option_none_label = ($post_id) ? 'Global Default' : 'None';
+        $option_none_label = 'Global Default';
         $option_none = ($field_value) ? "<option value=''>{$option_none_label}</option>" : "<option value='' selected>{$option_none_label}</option>";
 
         return "
@@ -194,7 +194,7 @@ function fsst_get_overrides_color_picker_field_html($field_label, $field_name, $
     $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
     return "
         <label for='field-{$field_name}'>{$field_label}</label>          
-        <input id='field-{$field_name}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' />
+        <input id='field-{$field_name}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' placeholder='Select Color' />
     ";
 }
 

@@ -75,6 +75,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'API Key',
 			'label_for' => 'api_key',
 			'class' => 'sharethumb-settings-row',
 			'description' => "You can find the API Key on the settings page for your site at <a href='https://app.sharethumb.io/dashboard' target='_blank'>https://app.sharethumb.io/dashboard</a>."
@@ -88,6 +89,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'DV Code',
 			'label_for' => 'dv_code',
 			'class' => 'sharethumb-settings-row',
 			'description' => "You can find the Domain Validation code for your site at <a href='https://app.sharethumb.io/dashboard' target='_blank'>https://app.sharethumb.io/dashboard</a>."
@@ -101,6 +103,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Theme',
 			'label_for' => 'theme',
 			'class' => 'sharethumb-settings-row theme',
 			'fetch_options_key' => 'theme'
@@ -114,6 +117,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Custom Theme',
 			'label_for' => 'theme_custom',
 			'class' => 'sharethumb-settings-row custom-theme'
 		]
@@ -126,6 +130,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Font',
 			'label_for' => 'font',
 			'class' => 'sharethumb-settings-row font',
 			'fetch_options_key' => 'font'
@@ -139,6 +144,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Logo',
 			'label_for' => 'logo',
 			'class' => 'sharethumb-settings-row',
 			'url_field_id' => 'logo_url'
@@ -164,6 +170,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Icon',
 			'label_for' => 'icon',
 			'class' => 'sharethumb-settings-row',
 			'url_field_id' => 'icon_url'
@@ -189,6 +196,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Select Color',
 			'label_for' => 'font_color',
 			'class' => 'sharethumb-settings-row'
 		]
@@ -201,6 +209,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Select Color',
 			'label_for' => 'background_color',
 			'class' => 'sharethumb-settings-row'
 		]
@@ -213,6 +222,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Select Color',
 			'label_for' => 'accent_color',
 			'class' => 'sharethumb-settings-row'
 		]
@@ -225,6 +235,7 @@ function fsst_register_settings() {
 		'sharethumb',
 		'sharethumb_section_general',
 		[
+			'placeholder' => 'Select Color',
 			'label_for' => 'secondary_color',
 			'class' => 'sharethumb-settings-row'
 		]
@@ -279,7 +290,7 @@ function fsst_sanitize_configuration($configuration) {
 function fsst_get_settings_hidden_field_html($args) {
 	$configuration = get_option('sharethumb_options');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_id = esc_attr($args['label_for']);
 	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
 	$field_name = "sharethumb_options[{$field_id}]";
 
@@ -320,7 +331,8 @@ function fsst_get_settings_checkboxes_field_html($args) {
 function fsst_get_settings_color_field_html($args) {
 	$configuration = get_option('sharethumb_options');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_placeholder = $args['placeholder'];
+	$field_id = esc_attr($args['label_for']);
 	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
 	$field_name = "sharethumb_options[{$field_id}]";
 
@@ -330,7 +342,7 @@ function fsst_get_settings_color_field_html($args) {
 	}
 
 	echo "
-		<input id='field-{$field_id}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' />
+		<input id='field-{$field_id}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' placeholder='{$field_placeholder}' />
 		{$field_description}
 	";
 }
@@ -338,7 +350,7 @@ function fsst_get_settings_color_field_html($args) {
 function fsst_get_settings_image_field_html($args) {
 	$configuration = get_option('sharethumb_options');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_id = esc_attr($args['label_for']);
 	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : 0;
 	$field_name = "sharethumb_options[{$field_id}]";
 	$url_field_id = $args['url_field_id'];
@@ -375,7 +387,8 @@ function fsst_get_settings_image_field_html($args) {
 function fsst_get_settings_select_field_html($args) {
 	$configuration = get_option('sharethumb_options');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_id = esc_attr($args['label_for']);
+	$field_placeholder = $args['placeholder'];
 	$field_name = "sharethumb_options[{$field_id}]";
 	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
 	$field_options = fsst_get_select_options($args['fetch_options_key']);
@@ -395,7 +408,7 @@ function fsst_get_settings_select_field_html($args) {
 	$field_option_none = ($field_value) ? "<option value=''>{$field_option_none_label}</option>" : "<option value='' selected>{$field_option_none_label}</option>";
 
 	echo "
-		<select id='field-{$field_id}' class='select2' name='{$field_name}' data-placeholder='{$field_label}'>
+		<select id='field-{$field_id}' class='select2' name='{$field_name}' data-placeholder='{$field_placeholder}'>
 			{$field_option_none}
 			{$field_options_markup}
 		</select>
@@ -405,7 +418,8 @@ function fsst_get_settings_select_field_html($args) {
 function fsst_get_settings_text_field_html($args) {
 	$configuration = get_option('sharethumb_options');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_id = esc_attr($args['label_for']);
+	$field_placeholder = $args['placeholder'];
 	$field_name = "sharethumb_options[{$field_id}]";
 	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
 
@@ -414,8 +428,8 @@ function fsst_get_settings_text_field_html($args) {
 		$field_description = "<div class='description'>{$field_description}</div>";
 	}
 
-	echo "
-		<input id='field-{$field_id}' type='text' name='{$field_name}' placeholder='{$field_label}' value='{$field_value}' />
+	echo "		
+		<input id='field-{$field_id}' type='text' name='{$field_name}' placeholder='{$field_placeholder}' value='{$field_value}' />
 		{$field_description}
 	";
 }

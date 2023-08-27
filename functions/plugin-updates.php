@@ -11,8 +11,6 @@
 
 if(!defined('ABSPATH')) { exit; }
 
-define('RELEASES_URL', 'https://api.github.com/repos/4site-interactive-studios/sharethumb-wordpress/releases');
-
 add_filter('pre_set_site_transient_update_plugins', 'fsst_add_remote_plugin_version', 10, 1);
 add_filter('plugins_api', 'fsst_plugin_popup', 10, 3);
 add_filter('upgrader_post_install', 'fsst_after_update', 10, 3);

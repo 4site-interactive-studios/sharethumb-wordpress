@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ShareThumb
- * Version: 1.0.10
+ * Version: 1.0.12
  * Plugin URI: https://sharethumb.io/
  * Description: Configure the ShareThumb service directly via your own website.
  * Author: 4Site Interactive Studios
@@ -31,7 +31,9 @@ include 'functions/metatags-insert.php';
 include 'functions/sharethumb-api.php';
 // Activation & Deactivation hooks
 include 'functions/plugin-operations.php';
+
 // Plugin Updating
+define('RELEASES_URL', 'https://api.github.com/repos/4site-interactive-studios/sharethumb-wordpress/releases');
 include 'functions/plugin-updates.php';
 
 // For convenience, defining these here so that we can use __FILE__ for plugin functions

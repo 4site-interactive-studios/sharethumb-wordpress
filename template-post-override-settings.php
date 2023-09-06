@@ -8,8 +8,15 @@
 	<?php if($post->ID): ?>
 	<?php 
 		$url = get_the_permalink($post->ID);
-		$url = str_replace(['http://', 'https://'], '', $url);
+		if(strpos($url, 'http') !== false) {
+			$url = str_replace(['http://', 'https://'], '', $url);
+		} else {
+			// for that unusual case where the permalink doesn't return the URL with the domain in it
+			$site_url = trim(str_replace(['http://', 'https://'], '', get_site_url()), '/');
+			$url = $site_url . $url;
+		}
 		$url = trim($url, '/');
+
 		$image_url = fsst_get_st_generated_image_url($url, true);
 	?>
 	<img src='<?php echo $image_url; ?>' class='st-generated-image' onerror="this.style.visibility='hidden'" />

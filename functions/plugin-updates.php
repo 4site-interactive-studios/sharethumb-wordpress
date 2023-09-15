@@ -29,19 +29,21 @@ function fsst_add_remote_plugin_version($transient) {
         if($checked = $transient->checked) {
             $response = fsst_get_latest_release_info();
             $plugin_basename = fsst_plugin_basename();
-            $out_of_date = version_compare($response['tag_name'], $checked[$plugin_basename], 'gt');
-            if($out_of_date) {
-                $zipball_url = $response['zipball_url'];
-                $slug = current(explode('/', $plugin_basename));
-                $plugin_data = fsst_plugin_data();
-                $plugin = [
-                    'url' => $plugin_data['PluginURI'],
-                    'slug' => $slug,
-                    'package' => $zipball_url,
-                    'new_version' => $response['tag_name']
-                ];
-                $transient->response[$plugin_basename] = (object) $plugin;
-            }
+            if(!empty($response['tag_name'])) {
+                $out_of_date = version_compare($response['tag_name'], $checked[$plugin_basename], 'gt');
+                if($out_of_date) {
+                    $zipball_url = $response['zipball_url'];
+                    $slug = current(explode('/', $plugin_basename));
+                    $plugin_data = fsst_plugin_data();
+                    $plugin = [
+                        'url' => $plugin_data['PluginURI'],
+                        'slug' => $slug,
+                        'package' => $zipball_url,
+                        'new_version' => $response['tag_name']
+                    ];
+                    $transient->response[$plugin_basename] = (object) $plugin;
+                }
+            }                
         }
     }
     return $transient;

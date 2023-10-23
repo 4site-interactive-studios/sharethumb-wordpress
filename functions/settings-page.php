@@ -46,10 +46,10 @@ function fsst_enqueue_scripts($hook) {
 	if($hook === 'toplevel_page_sharethumb') {
 
 		wp_enqueue_media();
-		wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
-		wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery']);
-		wp_enqueue_script('jscolor', 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.1/jscolor.min.js');
-		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0');
+		wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], '4.1.0-rc.0');
+		wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
+		wp_enqueue_script('jscolor', 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.1/jscolor.min.js', [], '2.5.1', ['in_footer' => true]);
+		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
 		wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
 
 	}
@@ -63,7 +63,7 @@ function fsst_register_settings() {
 
 	add_settings_section(
 		'sharethumb_section_general',
-		__('', 'sharethumb'), 
+		null,
 		'fsst_get_settings_general_section_html',
 		'sharethumb'
 	);
@@ -443,7 +443,7 @@ function fsst_render_settings_page_html() {
 		return;
 	}
 
-	if(isset($_GET['settings-updated'])) {
+	if(isset($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'sharethumb-options') && isset($_GET['settings-updated'])) {
 		add_settings_error('sharethumb_messages', 'sharethumb_message', __('Settings saved locally.', 'sharethumb'), 'updated');
 	}
 	settings_errors('sharethumb_messages');

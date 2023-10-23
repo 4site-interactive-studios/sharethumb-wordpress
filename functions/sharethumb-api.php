@@ -49,16 +49,18 @@ function fsst_api_validate_key($api_key) {
 function fsst_api_fetch_options($name) {
     $options = [];
     if($name === 'font') {
-        $json_encoded_data = file_get_contents(FSST_FONT_URL);
-        if($json_encoded_data) {
+        $response = wp_remote_get(FSST_FONT_URL);
+        if(!is_wp_error($response)) {
+			$json_encoded_data = wp_remote_retrieve_body($response);
             $font_names = json_decode($json_encoded_data);
             foreach($font_names as $font_name) {
                 $options[$font_name] = $font_name;
             }
         }
     } else if($name === 'theme') {
-        $json_encoded_data = file_get_contents(FSST_THEME_URL);
-        if($json_encoded_data) {
+        $response = wp_remote_get(FSST_THEME_URL);
+        if(!is_wp_error($response)) {
+        	$json_encoded_data = wp_remote_retrieve_body($response);
             $themes = json_decode($json_encoded_data);
             foreach($themes as $theme) {
                 $options[$theme->name] = $theme->key;
@@ -115,7 +117,7 @@ function fsst_api_regenerate_thumbnail($configuration, $thumbnail_id) {
 		}
 	}
 
-	$json_configuration = json_encode($configuration);
+	$json_configuration = wp_json_encode($configuration);
 	$response = wp_remote_post(FSST_REGENERATE_THUMBNAIL_URL . '/' . $thumbnail_id, [
 		'method' => 'PUT',
 		'headers' => [
@@ -169,7 +171,7 @@ function fsst_api_save_global_configuration($configuration) {
 		unset($configuration['post_types']);
 	}
 
-	$json_configuration = json_encode($configuration);
+	$json_configuration = wp_json_encode($configuration);
 	$response = wp_remote_post(FSST_SETTINGS_URL, [
 		'method' => 'PUT',
 		'headers' => [

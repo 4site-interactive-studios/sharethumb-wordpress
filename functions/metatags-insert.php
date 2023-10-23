@@ -40,58 +40,58 @@ add_filter('wp_head', function() {
 function fsst_insert_metatags() {
 	$st_config = fsst_get_configuration();
 
-	echo "\n";
+	$metatags = "\n";
 	if(!empty($st_config['dv_code']) && is_front_page()) {
-		echo "<meta name='sharethumb' content='{$st_config['dv_code']}'>\n";
+		$metatags .= "<meta name='sharethumb' content='{$st_config['dv_code']}'>\n";
 	}
 	if(!empty($st_config['logo_url'])) {
-		echo "<meta property='st:logo' content='{$st_config['logo_url']}'>\n";
+		$metatags .= "<meta property='st:logo' content='{$st_config['logo_url']}'>\n";
 	}
 	if(!empty($st_config['icon_url'])) {		
-		echo "<meta property='st:icon' content='{$st_config['icon_url']}'>\n";
+		$metatags .= "<meta property='st:icon' content='{$st_config['icon_url']}'>\n";
 	}
 	if(!empty($st_config['font'])) {
-		echo "<meta property='st:font' content='{$st_config['font']}'>\n";
+		$metatags .= "<meta property='st:font' content='{$st_config['font']}'>\n";
 	}
 	if(!empty($st_config['theme'])) {
-		echo "<meta property='st:theme' content='{$st_config['theme']}'>\n";
+		$metatags .= "<meta property='st:theme' content='{$st_config['theme']}'>\n";
 		if($st_config['theme'] == 'custom' && !empty($st_config['theme_custom'])) {
-			echo "<meta property='st:theme_custom' content='{$st_config['theme_custom']}'>\n";
+			$metatags .= "<meta property='st:theme_custom' content='{$st_config['theme_custom']}'>\n";
 		}
 	}
 	if(!empty($st_config['font_color'])) {
-		echo "<meta property='st:font_color' content='{$st_config['font_color']}'>\n";
+		$metatags .= "<meta property='st:font_color' content='{$st_config['font_color']}'>\n";
 	}
 	if(!empty($st_config['background_color'])) {
-		echo "<meta property='st:background_color' content='{$st_config['background_color']}'>\n";
+		$metatags .= "<meta property='st:background_color' content='{$st_config['background_color']}'>\n";
 	}
 	if(!empty($st_config['accent_color'])) {
-		echo "<meta property='st:accent_color' content='{$st_config['accent_color']}'>\n";
+		$metatags .= "<meta property='st:accent_color' content='{$st_config['accent_color']}'>\n";
 	}
 	if(!empty($st_config['secondary_color'])) {
-		echo "<meta property='st:secondary_color' content='{$st_config['secondary_color']}'>\n";
+		$metatags .= "<meta property='st:secondary_color' content='{$st_config['secondary_color']}'>\n";
 	}
 
 	$featured_image_url = get_the_post_thumbnail_url(null, 'large');
 	if($featured_image_url) {
-		echo "<meta property='st:image' content='{$featured_image_url}'>\n";
+		$metatags .= "<meta property='st:image' content='{$featured_image_url}'>\n";
 	}
 
-	echo "<meta name='robots' content='max-image-preview:large'>\n";
+	$metatags .= "<meta name='robots' content='max-image-preview:large'>\n";
 
 	$site_name = get_bloginfo('name');
-	echo "<meta property='st:site_name' content='{$site_name}'>\n";
+	$metatags .= "<meta property='st:site_name' content='{$site_name}'>\n";
 
 	$excerpt = str_replace("'", "", get_the_excerpt());
 	if($excerpt) {
-		echo "<meta property='st:description' content='{$excerpt}'>\n";		
+		$metatags .= "<meta property='st:description' content='{$excerpt}'>\n";		
 	}
 
 	global $wp;
 	$page_url = home_url($wp->request);
 	$page_url = preg_replace("(^https?://)", "", $page_url);
 	// Add a random number to the end of the URL to force a refresh of the image
-	$page_url .= '?' . rand(1000, 999999);
+	$page_url .= '?' . wp_rand(1000, 999999);
 
 	
 	$page_title = fsst_get_page_title();
@@ -100,16 +100,18 @@ function fsst_insert_metatags() {
 	global $wp;
 	$image_url = fsst_get_st_generated_image_url(home_url($wp->request));
 
-	echo "<meta name='st:title' content='{$page_title_no_sep}'>\n";
+	$metatags .= "<meta name='st:title' content='{$page_title_no_sep}'>\n";
 
 	// We remove the original metatags in the wp_head filter and use these, instead
-	echo "<meta name='twitter:title' content='{$page_title}'>\n";
-	echo "<meta name='twitter:image' content='{$image_url}'>\n";
-	echo "<meta name='twitter:card' content='summary_large_image'>\n";
-	echo "<meta property='og:title' content='{$page_title}'>\n";
-	echo "<meta property='og:image' content='{$image_url}'>\n";
-	echo "<meta property='og:image:width' content='1200' />\n";
-	echo "<meta property='og:image:height' content='630' />\n";
+	$metatags .= "<meta name='twitter:title' content='{$page_title}'>\n";
+	$metatags .= "<meta name='twitter:image' content='{$image_url}'>\n";
+	$metatags .= "<meta name='twitter:card' content='summary_large_image'>\n";
+	$metatags .= "<meta property='og:title' content='{$page_title}'>\n";
+	$metatags .= "<meta property='og:image' content='{$image_url}'>\n";
+	$metatags .= "<meta property='og:image:width' content='1200' />\n";
+	$metatags .= "<meta property='og:image:height' content='630' />\n";
+
+	echo $metatags;
 }
 
 function fsst_get_st_generated_image_url($page_url, $is_preview = false) {
@@ -120,7 +122,7 @@ function fsst_get_st_generated_image_url($page_url, $is_preview = false) {
 	} else {
 		$page_url .= '?';
 	}
-	$page_url .= rand(1000, 999999);
+	$page_url .= wp_rand(1000, 999999);
 	if($is_preview) {
 		return FSST_IMAGE_BASE_URL . $page_url;
 	} else {
@@ -202,7 +204,7 @@ function fsst_get_title_no_sep($check_fp = false) {
 
 	if(is_search()) {
 		/* translators: 1: Separator, 2: Search query. */
-		$title = sprintf(__('Search Results %1$s %2$s'), $t_sep, strip_tags($search));
+		$title = sprintf(__('Search Results %1$s %2$s'), $t_sep, wp_strip_all_tags($search));
 	}
 
 	if(is_404()) {

@@ -19,7 +19,7 @@
 
 		$image_url = fsst_get_st_generated_image_url($url, true);
 	?>
-	<img src='<?php echo $image_url; ?>' class='st-generated-image' onerror="this.style.visibility='hidden'" />
+	<img src='<?php echo esc_url($image_url); ?>' class='st-generated-image' onerror="this.style.visibility='hidden'" />
 	<?php endif; ?>
 
 	<div class='sharethumb-settings-row instructions'>

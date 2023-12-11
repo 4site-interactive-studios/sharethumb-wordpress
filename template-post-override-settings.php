@@ -31,36 +31,36 @@
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_image_field_html('Logo', 'logo', $configuration); ?>
+		<?php echo fsst_get_overrides_image_field_html('Logo', 'fsst_logo', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_image_field_html('Icon', 'icon', $configuration); ?>
+		<?php echo fsst_get_overrides_image_field_html('Icon', 'fsst_icon', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row theme'>
-		<?php echo fsst_get_overrides_select_field_html('Theme', 'theme', $configuration); ?>
+		<?php echo fsst_get_overrides_select_field_html('Theme', 'fsst_theme', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row custom-theme'>
-		<?php echo fsst_get_overrides_text_field_html('Custom Theme', 'theme_custom', $configuration); ?>
+		<?php echo fsst_get_overrides_text_field_html('Custom Theme', 'fsst_theme_custom', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_select_field_html('Font', 'font', $configuration); ?>
+		<?php echo fsst_get_overrides_select_field_html('Font', 'fsst_font', $configuration); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Font Color', 'font_color', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Font Color', 'fsst_font_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Background Color', 'background_color', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Background Color', 'fsst_background_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Accent Color', 'accent_color', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Accent Color', 'fsst_accent_color', $configuration); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Secondary Color', 'secondary_color', $configuration); ?>
+		<?php echo fsst_get_overrides_color_picker_field_html('Secondary Color', 'fsst_secondary_color', $configuration); ?>
 	</div>
 </div>
 <script>

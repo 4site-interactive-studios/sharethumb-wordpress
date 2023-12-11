@@ -18,7 +18,9 @@
  * 
  **/
 
+// Exit if accessed directly
 if(!defined('ABSPATH')) { exit; }
+
 
 add_action('add_meta_boxes',		'fsst_add_post_override_boxes', 10, 2);
 add_action('save_post',				'fsst_save_post_override_configuration', PHP_INT_MAX, 3);
@@ -32,14 +34,14 @@ function fsst_get_post_configuration($post_id) {
 		$post_configuration = [];
 	}
 
-	$global_configuration = get_option('sharethumb_options');
+	$global_configuration = get_option('fsst_settings');
 	$post_configuration['api_key_set'] = !empty($global_configuration['api_key']);
 
 	return $post_configuration;
 }
 
 function fsst_add_post_override_boxes($post_type, $post) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 	if(is_array($configuration['post_types']) && count($configuration['post_types'])) {
 		add_meta_box(
 			'sharethumb-meta-box',
@@ -53,9 +55,9 @@ function fsst_add_post_override_boxes($post_type, $post) {
 }
 
 function fsst_render_metabox_html($post) {
-	wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], '4.1.0-rc.0');
-	wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
-	wp_enqueue_script('jscolor', 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.1/jscolor.min.js', [], '2.5.1', ['in_footer' => true]);
+	wp_enqueue_style('select2', plugins_url('../assets/select2.min.css', __FILE__), [], '4.1.0-rc.0');
+	wp_enqueue_script('select2', plugins_url('../assets/select2.min.js', __FILE__), ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
+	wp_enqueue_script('jscolor', plugins_url('../assets/jscolor.min.js', __FILE__), [], '2.5.1', ['in_footer' => true]);
 	wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
 	wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
 
@@ -63,8 +65,48 @@ function fsst_render_metabox_html($post) {
 }
 
 
+function fsst_sanitize_post_overrides($user_submitted_overrides) {
+	$retval = [];
+
+	foreach($user_submitted_overrides as $key => $value) {
+		$sanitized_value = '';
+		$configuration_key = '';
+		switch($key) {
+			case 'fsst_logo':
+			case 'fsst_icon':
+				$configuration_key = str_replace('fsst_', '', $key);
+				$sanitized_value = (int) $value;
+				break;
+			case 'fsst_theme':
+			case 'fsst_theme_custom':
+			case 'fsst_font':
+				$configuration_key = str_replace('fsst_', '', $key);
+				$sanitized_value = sanitize_text_field($value);
+				break;
+			case 'fsst_font_color':
+			case 'fsst_background_color':
+			case 'fsst_accent_color':	
+			case 'fsst_secondary_color':
+				$configuration_key = str_replace('fsst_', '', $key);
+				$sanitized_value = sanitize_hex_color($value);
+				break;
+			case 'fsst_icon_url':
+			case 'fsst_logo_url':
+				$configuration_key = str_replace('fsst_', '', $key);
+				$sanitized_value = sanitize_url($value);
+				break;
+		}
+		
+		if($configuration_key) {
+			$retval[$configuration_key] = $sanitized_value;
+		}
+	}
+
+	return $retval;
+}
+
 function fsst_save_post_override_configuration($post_id, $post, $update) {
-	if(empty($_POST['sharethumb_nonce']) || !wp_verify_nonce($_POST['sharethumb_nonce'], 'sharethumb_metabox')) {
+	if(empty($_POST['sharethumb_nonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['sharethumb_nonce'])), 'sharethumb_metabox')) {
 		return $post_id;
 	}
 	if(defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
@@ -83,10 +125,11 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 
 	$default_configuration = fsst_get_default_post_configuration();
 	$post_configuration = [];
+	$user_submitted_values = fsst_sanitize_post_overrides($_POST);
 
-	foreach($default_configuration as $key => $value) {		
-		if(isset($_POST[$key])) {
-			$post_configuration[$key] = $_POST[$key];
+	foreach($default_configuration as $key => $value) {
+		if(isset($user_submitted_values[$key])) {
+			$post_configuration[$key] = $user_submitted_values[$key];
 		} else {
 			$post_configuration[$key] = $value;
 		}
@@ -97,7 +140,7 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 
 	update_post_meta($post_id, 'sharethumb', $post_configuration);
 
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 	$thumbnail_id = fsst_api_get_thumbnail_id($configuration['api_key'], get_the_permalink($post_id));
 	if($thumbnail_id) {
 		foreach($configuration as $key => $value) {
@@ -111,26 +154,28 @@ function fsst_save_post_override_configuration($post_id, $post, $update) {
 }
 
 function fsst_get_overrides_text_field_html($field_label, $field_name, $configuration, $description = '') {
-    $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
+	$configuration_key = str_replace('fsst_', '', $field_name);
+    $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
     if($description) {
-        $description = "<div class='description'>{$description}</div>";
+        $description = "<div class='description'>" . wp_kses_post($description) . "</div>";
     }
     return "
-        <label for='field-{$field_name}'>{$field_label}</label>
-        <input id='field-{$field_name}' type='text' name='{$field_name}' placeholder='{$field_label}' value='{$field_value}' />
+        <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
+        <input id='field-" . esc_attr($field_name) . "' type='text' name='" . esc_attr($field_name) . "' placeholder='" . esc_attr($field_label) . "' value='" . esc_attr($field_value) . "' />
         {$description}
     ";
 }
 
 function fsst_get_overrides_image_field_html($field_label, $field_name, $configuration) {
+	$configuration_key = str_replace('fsst_', '', $field_name);
     $field_markup = '';
-    $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : 0;
+    $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : 0;
     if($field_value) {
         $image_url = wp_get_attachment_image_url($field_value, 'medium');
         if($image_url) {
-            $image_url = esc_url($image_url);
+            $image_url = $image_url;
             $field_markup = "               
-                <a href='#' class='button image-upload'><img src='{$image_url}' /></a>
+                <a href='#' class='button image-upload'><img src='" . esc_url($image_url) . "' /></a>
                 <a href='#' class='button image-remove'>Remove Image</a>
             ";
         }
@@ -142,22 +187,23 @@ function fsst_get_overrides_image_field_html($field_label, $field_name, $configu
     }
 
     return "
-        <label for='field-{$field_name}'>{$field_label}</label>
+        <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
         {$field_markup}
-        <input id='field-{$field_name}' type='hidden' name='{$field_name}' value='{$field_value}' />
+        <input id='field-" . esc_attr($field_name) . "' type='hidden' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' />
     ";
 }
 
 function fsst_get_overrides_select_field_html($field_label, $field_name, $configuration) {
-    $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
-    $options = fsst_get_select_options($field_name);
+	$configuration_key = str_replace('fsst_', '', $field_name);
+    $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
+    $options = fsst_get_select_options($configuration_key);
 
     // If, for whatever reason the ShareThumb API isn't reachable, let's just show a text field
     if(!is_array($options) || !count($options)) {
 
         return "
-            <label for='field-{$field_name}'>{$field_label}</label>
-            <input id='field-{$field_name}' type='text' name='{$field_name}' value='{$field_value}' />
+            <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
+            <input id='field-" . esc_attr($field_name) . "' type='text' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' />
         ";
 
     } else {
@@ -166,9 +212,9 @@ function fsst_get_overrides_select_field_html($field_label, $field_name, $config
         foreach($options as $key => $label) {
             if($field_value == $key) {
                 $selected_option = true;
-                $options_markup .= "<option value='{$key}' selected>{$label}</option>";
+                $options_markup .= "<option value='" . esc_attr($key) . "' selected>" . esc_html($label) . "</option>";
             } else {
-                $options_markup .= "<option value='{$key}'>{$label}</option>";
+                $options_markup .= "<option value='" . esc_attr($key) . "'>" . esc_html($label) . "</option>";
             }
         }
 
@@ -176,8 +222,8 @@ function fsst_get_overrides_select_field_html($field_label, $field_name, $config
         $option_none = ($field_value) ? "<option value=''>{$option_none_label}</option>" : "<option value='' selected>{$option_none_label}</option>";
 
         return "
-            <label for='field-{$field_name}'>{$field_label}</label>
-            <select id='field-{$field_name}' class='select2' name='{$field_name}' data-placeholder='{$field_label}'>
+            <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
+            <select id='field-" . esc_attr($field_name) . "' class='select2' name='" . esc_attr($field_name) . "' data-placeholder='" . esc_attr($field_label) . "'>
                 {$option_none}
                 {$options_markup}
             }
@@ -189,10 +235,11 @@ function fsst_get_overrides_select_field_html($field_label, $field_name, $config
 
 // Functionality for this field is supplemented by the jscolor script
 function fsst_get_overrides_color_picker_field_html($field_label, $field_name, $configuration) {
-    $field_value = isset($configuration[$field_name]) ? $configuration[$field_name] : '';
+	$configuration_key = str_replace('fsst_', '', $field_name);
+    $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
     return "
-        <label for='field-{$field_name}'>{$field_label}</label>          
-        <input id='field-{$field_name}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' placeholder='Select Color' />
+        <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
+        <input id='field-" . esc_attr($field_name) . "' data-jscolor='{required:false}' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' placeholder='Select Color' />
     ";
 }
 

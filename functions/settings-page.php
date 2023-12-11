@@ -22,7 +22,9 @@
  * 
  **/
 
+// Exit if accessed directly
 if(!defined('ABSPATH')) { exit; }
+
 
 add_action('admin_init',			'fsst_register_settings');
 add_action('admin_menu',			'fsst_init_admin_menu');
@@ -35,7 +37,7 @@ function fsst_init_admin_menu() {
 		__('Settings', 'fsst'),
 		__('ShareThumb', 'fsst'),
 		'manage_options',
-		'sharethumb',
+		'fsst_settings',
 		'fsst_render_settings_page_html',
 		'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48IS0tISBGb250IEF3ZXNvbWUgUHJvIDYuMi4xIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlIChDb21tZXJjaWFsIExpY2Vuc2UpIENvcHlyaWdodCAyMDIyIEZvbnRpY29ucywgSW5jLiAtLT48cGF0aCBkPSJNMzEzLjQgMzIuOWMyNiA1LjIgNDIuOSAzMC41IDM3LjcgNTYuNWwtMi4zIDExLjRjLTUuMyAyNi43LTE1LjEgNTIuMS0yOC44IDc1LjJINDY0YzI2LjUgMCA0OCAyMS41IDQ4IDQ4YzAgMjUuMy0xOS41IDQ2LTQ0LjMgNDcuOWM3LjcgOC41IDEyLjMgMTkuOCAxMi4zIDMyLjFjMCAyMy40LTE2LjggNDIuOS0zOC45IDQ3LjFjNC40IDcuMiA2LjkgMTUuOCA2LjkgMjQuOWMwIDIxLjMtMTMuOSAzOS40LTMzLjEgNDUuNmMuNyAzLjMgMS4xIDYuOCAxLjEgMTAuNGMwIDI2LjUtMjEuNSA0OC00OCA0OEgyOTQuNWMtMTkgMC0zNy41LTUuNi01My4zLTE2LjFsLTM4LjUtMjUuN0MxNzYgNDIwLjQgMTYwIDM5MC40IDE2MCAzNTguM1YzMjAgMjcyIDI0Ny4xYzAtMjkuMiAxMy4zLTU2LjcgMzYtNzVsNy40LTUuOWMyNi41LTIxLjIgNDQuNi01MSA1MS4yLTg0LjJsMi4zLTExLjRjNS4yLTI2IDMwLjUtNDIuOSA1Ni41LTM3Ljd6TTMyIDE5Mkg5NmMxNy43IDAgMzIgMTQuMyAzMiAzMlY0NDhjMCAxNy43LTE0LjMgMzItMzIgMzJIMzJjLTE3LjcgMC0zMi0xNC4zLTMyLTMyVjIyNGMwLTE3LjcgMTQuMy0zMiAzMi0zMnoiIGZpbGw9ImN1cnJlbnRDb2xvciIvPjwvc3ZnPg=='
 	);
@@ -43,12 +45,12 @@ function fsst_init_admin_menu() {
 
 // Enqueue the scripts & styles for our settings page
 function fsst_enqueue_scripts($hook) {
-	if($hook === 'toplevel_page_sharethumb') {
+	if($hook === 'toplevel_page_fsst_settings') {
 
 		wp_enqueue_media();
-		wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], '4.1.0-rc.0');
-		wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
-		wp_enqueue_script('jscolor', 'https://cdnjs.cloudflare.com/ajax/libs/jscolor/2.5.1/jscolor.min.js', [], '2.5.1', ['in_footer' => true]);
+		wp_enqueue_style('select2', plugins_url('../assets/select2.min.css', __FILE__), [], '4.1.0-rc.0');
+		wp_enqueue_script('select2', plugins_url('../assets/select2.min.js', __FILE__), ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
+		wp_enqueue_script('jscolor', plugins_url('../assets/jscolor.min.js', __FILE__), [], '2.5.1', ['in_footer' => true]);
 		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
 		wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
 
@@ -57,23 +59,23 @@ function fsst_enqueue_scripts($hook) {
 
 // Register our settings to be displayed on the settings page, using WP Settings API
 function fsst_register_settings() {
-	register_setting('sharethumb', 'sharethumb_options', [
+	register_setting('fsst_settings', 'fsst_settings', [
 		'sanitize_callback' => 'fsst_sanitize_configuration'
 	]);
 
 	add_settings_section(
-		'sharethumb_section_general',
+		'fsst_section_general',
 		null,
 		'fsst_get_settings_general_section_html',
-		'sharethumb'
+		'fsst_settings'
 	);
 
 	add_settings_field(
-		'api_key',
+		'fsst_api_key',
 		__('API Key', 'sharethumb'),
 		'fsst_get_settings_text_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'API Key',
 			'label_for' => 'api_key',
@@ -83,11 +85,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'dv_code',
+		'fsst_dv_code',
 		__('Domain Verification Code', 'sharethumb'),
 		'fsst_get_settings_text_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'DV Code',
 			'label_for' => 'dv_code',
@@ -97,11 +99,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'theme',
+		'fsst_theme',
 		__('Theme', 'sharethumb'),
 		'fsst_get_settings_select_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Theme',
 			'label_for' => 'theme',
@@ -111,11 +113,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'theme_custom',
+		'fsst_theme_custom',
 		__('Custom Theme', 'sharethumb'),
 		'fsst_get_settings_text_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Custom Theme',
 			'label_for' => 'theme_custom',
@@ -124,11 +126,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'font',
+		'fsst_font',
 		__('Font', 'sharethumb'),
 		'fsst_get_settings_select_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Font',
 			'label_for' => 'font',
@@ -138,11 +140,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'logo',
+		'fsst_logo',
 		__('Logo', 'sharethumb'),
 		'fsst_get_settings_image_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Logo',
 			'label_for' => 'logo',
@@ -152,11 +154,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'logo_url',
+		'fsst_logo_url',
 		__('Icon URL', 'sharethumb'),
 		'fsst_get_settings_hidden_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'label_for' => 'logo_url',
 			'class' => 'sharethumb-settings-row hidden'
@@ -164,11 +166,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'icon',
+		'fsst_icon',
 		__('Icon', 'sharethumb'),
 		'fsst_get_settings_image_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Icon',
 			'label_for' => 'icon',
@@ -178,11 +180,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'icon_url',
+		'fsst_icon_url',
 		__('Icon URL', 'sharethumb'),
 		'fsst_get_settings_hidden_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'label_for' => 'icon_url',
 			'class' => 'sharethumb-settings-row hidden'
@@ -190,11 +192,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'font_color',
+		'fsst_font_color',
 		__('Font Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
 			'label_for' => 'font_color',
@@ -203,11 +205,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'background_color',
+		'fsst_background_color',
 		__('Background Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
 			'label_for' => 'background_color',
@@ -216,11 +218,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'accent_color',
+		'fsst_accent_color',
 		__('Accent', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
 			'label_for' => 'accent_color',
@@ -229,11 +231,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'secondary_color',
+		'fsst_secondary_color',
 		__('Secondary', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
 			'label_for' => 'secondary_color',
@@ -242,11 +244,11 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'post_types',
+		'fsst_post_types',
 		__('Overridable Post Types', 'sharethumb'),
 		'fsst_get_settings_checkboxes_field_html',
-		'sharethumb',
-		'sharethumb_section_general',
+		'fsst_settings',
+		'fsst_section_general',
 		[
 			'label_for' => 'post_types',
 			'class' => 'sharethumb-settings-row checkboxes',
@@ -288,34 +290,37 @@ function fsst_sanitize_configuration($configuration) {
 }
 
 function fsst_get_settings_hidden_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
-	$field_id = esc_attr($args['label_for']);
-	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
-	$field_name = "sharethumb_options[{$field_id}]";
+	$field_id = $args['label_for'];
+	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
+	$field_name = "fsst_settings[{$field_id}]";
 
 	echo "
-		<input type='hidden' id='field-{$field_id}' name='{$field_name}' value='{$field_value}' />
+		<input type='hidden' id='field-" . esc_attr($field_id) . "' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' />
 	";
 }
 
 function fsst_get_settings_checkboxes_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
-	$field_id = esc_attr($args['label_for']);	 
+	$field_id = $args['label_for'];	 
 	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
 	if(!is_array($field_value)) $field_value = [];
-	$field_name = "sharethumb_options[{$field_id}][]";
+	$field_name = "fsst_settings[{$field_id}][]";
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
-	$field_markup = '';
+	if($field_description) {
+		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
+	}
 
+	$field_markup = '';
 	foreach($args['options'] as $key => $label) {
 		$checked = in_array($key, $field_value) ? 'checked' : '';
 		$field_markup .= "
 			<label>
-				<input type='checkbox' name='{$field_name}' value='{$key}' {$checked} />
-				{$label}
+				<input type='checkbox' name='" . esc_attr($field_name) . "' value='" . esc_attr($key) . "' {$checked} />
+				" . esc_html($label) . "
 			</label>
 		";
 	}
@@ -323,50 +328,50 @@ function fsst_get_settings_checkboxes_field_html($args) {
 	echo "
 		<div class='column-flex'>
 			<div class='options'>{$field_markup}</div>
-			<div class='description'>{$field_description}</div>
+			{$field_description}
 		</div>
 	";
 }
 
 function fsst_get_settings_color_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
 	$field_placeholder = $args['placeholder'];
-	$field_id = esc_attr($args['label_for']);
-	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
-	$field_name = "sharethumb_options[{$field_id}]";
+	$field_id = $args['label_for'];
+	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
+	$field_name = "fsst_settings[{$field_id}]";
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
 	if($field_description) {
-		$field_description = "<div class='description'>{$field_description}</div>";
+		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
 	echo "
-		<input id='field-{$field_id}' data-jscolor='{required:false}' name='{$field_name}' value='{$field_value}' placeholder='{$field_placeholder}' />
+		<input id='field-" . esc_attr($field_id) . "' data-jscolor='{required:false}' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' placeholder='" . esc_attr($field_placeholder) .  "' />
 		{$field_description}
 	";
 }
 
 function fsst_get_settings_image_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
-	$field_id = esc_attr($args['label_for']);
-	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : 0;
-	$field_name = "sharethumb_options[{$field_id}]";
+	$field_id = $args['label_for'];
+	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : 0;
+	$field_name = "fsst_settings[{$field_id}]";
 	$url_field_id = $args['url_field_id'];
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
 	if($field_description) {
-		$field_description = "<div class='description'>{$field_description}</div>";
+		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
 	$field_markup = '';
 	if($field_value) {
 		$image_url = wp_get_attachment_image_url($field_value, 'medium');
 		if($image_url) {
-			$image_url = esc_url($image_url);
+			$image_url = $image_url;
 			$field_markup = "				
-				<a href='#' class='button image-upload'><img src='{$image_url}' /></a>
+				<a href='#' class='button image-upload'><img src='" . esc_url($image_url) . "' /></a>
 				<a href='#' class='button image-remove'>Remove Image</a>
 			";
 		}
@@ -379,36 +384,36 @@ function fsst_get_settings_image_field_html($args) {
 
 	echo "
 			{$field_markup}
-			<input id='field-{$field_id}' type='hidden' name='{$field_name}' value='{$field_value}' data-url-field-id='field-{$url_field_id}' />
+			<input id='field-" . esc_attr($field_id) . "' type='hidden' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' data-url-field-id='field-" . esc_attr($url_field_id) . "' />
 			{$field_description}
 	";
 }
 
 function fsst_get_settings_select_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
-	$field_id = esc_attr($args['label_for']);
+	$field_id = $args['label_for'];
 	$field_placeholder = $args['placeholder'];
-	$field_name = "sharethumb_options[{$field_id}]";
-	$field_value = isset($configuration[$field_id]) ? esc_attr($configuration[$field_id]) : '';
+	$field_name = "fsst_settings[{$field_id}]";
+	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
 	$field_options = fsst_get_select_options($args['fetch_options_key']);
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
 	if($field_description) {
-		$field_description = "<div class='description'>{$field_description}</div>";
+		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
 	$field_options_markup = '';
 	foreach($field_options as $key => $label) {
 		$selected = selected($field_value, esc_attr($key), false);
-		$field_options_markup .= "<option value='{$key}' {$selected}>{$label}</option>";
+		$field_options_markup .= "<option value='" . esc_attr($key) . "' {$selected}>" . esc_html($label) . "</option>";
 	}
 
 	$field_option_none_label = isset($args['post_id']) ? 'Global Default' : 'None';
-	$field_option_none = ($field_value) ? "<option value=''>{$field_option_none_label}</option>" : "<option value='' selected>{$field_option_none_label}</option>";
+	$field_option_none = ($field_value) ? "<option value=''>" . esc_attr($field_option_none_label) . "</option>" : "<option value='' selected>" . esc_attr($field_option_none_label) . "</option>";
 
 	echo "
-		<select id='field-{$field_id}' class='select2' name='{$field_name}' data-placeholder='{$field_placeholder}'>
+		<select id='field-" . esc_attr($field_id) . "' class='select2' name='" . esc_attr($field_name) . "' data-placeholder='" . esc_attr($field_placeholder) . "'>
 			{$field_option_none}
 			{$field_options_markup}
 		</select>
@@ -416,20 +421,20 @@ function fsst_get_settings_select_field_html($args) {
 }
 
 function fsst_get_settings_text_field_html($args) {
-	$configuration = get_option('sharethumb_options');
+	$configuration = get_option('fsst_settings');
 
-	$field_id = esc_attr($args['label_for']);
+	$field_id = $args['label_for'];
 	$field_placeholder = $args['placeholder'];
-	$field_name = "sharethumb_options[{$field_id}]";
+	$field_name = "fsst_settings[{$field_id}]";
 	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
 	if($field_description) {
-		$field_description = "<div class='description'>{$field_description}</div>";
+		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
 	echo "		
-		<input id='field-{$field_id}' type='text' name='{$field_name}' placeholder='{$field_placeholder}' value='{$field_value}' />
+		<input id='field-" . esc_attr($field_id) . "' type='text' name='" . esc_attr($field_name) . "' placeholder='" . esc_attr($field_placeholder) . "' value='" . esc_attr($field_value) . "' />
 		{$field_description}
 	";
 }
@@ -443,7 +448,7 @@ function fsst_render_settings_page_html() {
 		return;
 	}
 
-	if(isset($_REQUEST['_wpnonce']) && wp_verify_nonce($_REQUEST['_wpnonce'], 'sharethumb-options') && isset($_GET['settings-updated'])) {
+	if(isset($_REQUEST['_wpnonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_REQUEST['_wpnonce'])), 'sharethumb_metabox') && isset($_GET['settings-updated'])) {
 		add_settings_error('sharethumb_messages', 'sharethumb_message', __('Settings saved locally.', 'sharethumb'), 'updated');
 	}
 	settings_errors('sharethumb_messages');
@@ -451,12 +456,12 @@ function fsst_render_settings_page_html() {
 	$page_title = esc_html(get_admin_page_title());
 	echo "
 		<div class='wrap'>
-			<h1>{$page_title}</h1>
+			<h1>" . esc_html($page_title) . "</h1>
 			<form action='options.php' method='post'>
 	";
 
-	settings_fields('sharethumb');
-	do_settings_sections('sharethumb');
+	settings_fields('fsst_settings');
+	do_settings_sections('fsst_settings');
 	submit_button('Save Settings');
 
 	echo "
@@ -469,11 +474,11 @@ function fsst_render_settings_page_html() {
 // Saving the options in a transient for 10 minutes.
 // No need to constantly request the options if we don't need to, during a single configuration session.
 function fsst_get_select_options($name) {
-    $choices = get_transient("st_{$name}_choices");
+    $choices = get_transient("fsst_{$name}_choices");
     if(empty($choices)) {
         $choices = fsst_api_fetch_options($name);
         if(!empty($choices)) {
-            set_transient("st_{$name}_choices", $choices, 600);
+            set_transient("fsst_{$name}_choices", $choices, 600);
         }
     }
     return $choices;

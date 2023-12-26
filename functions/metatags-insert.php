@@ -113,7 +113,13 @@ function fsst_insert_metatags() {
 	$metatags .= "<meta property='og:image:width' content='1200' />\n";
 	$metatags .= "<meta property='og:image:height' content='630' />\n";
 
-	echo $metatags;
+	echo wp_kses($metatags, [
+		'meta' => [
+			'name' => true,
+			'content' => true,
+			'property' => true
+		]
+	]);
 }
 
 function fsst_get_st_generated_image_url($page_url, $is_preview = false) {

@@ -37,7 +37,9 @@
 	padding: 5px;
 	font-size: 12px;	
 }
-
+.sharethumb-settings-row img {
+	max-height: 150px;
+}
 
 
 .post-configuration-wrapper .sharethumb-settings-row {
@@ -53,6 +55,7 @@
 .post-configuration-wrapper .sharethumb-settings-row.custom-theme.show {
 	display: block;
 }
+.sharethumb-settings-row .hide-button,
 .post-configuration-wrapper .hide-button {
 	display: none;
 }

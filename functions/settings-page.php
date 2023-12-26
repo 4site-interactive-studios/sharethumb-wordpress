@@ -325,12 +325,21 @@ function fsst_get_settings_checkboxes_field_html($args) {
 		";
 	}
 
-	echo "
-		<div class='column-flex'>
-			<div class='options'>{$field_markup}</div>
-			{$field_description}
-		</div>
-	";
+	$allowed_html = [
+		'label' => [], 
+		'input' => [
+			'type' => true,
+			'name' => true,
+			'value' => true,
+			'checked' => true
+		],
+		'div' => [
+			'class' => true
+		]
+	];
+	echo "<div class='column-flex'><div class='options'>" . wp_kses($field_markup, $allowed_html) . 
+		"</div>" . wp_kses($field_description, $allowed_html) .
+		"</div>";
 }
 
 function fsst_get_settings_color_field_html($args) {
@@ -346,10 +355,16 @@ function fsst_get_settings_color_field_html($args) {
 		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
-	echo "
-		<input id='field-" . esc_attr($field_id) . "' data-jscolor='{required:false}' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' placeholder='" . esc_attr($field_placeholder) .  "' />
-		{$field_description}
-	";
+	$allowed_html = [
+		'div' => [
+			'class' => true
+		]
+	];
+	echo "<input id='field-" . esc_attr($field_id) . 
+		"' data-jscolor='{required:false}' name='" . esc_attr($field_name) . 
+		"' value='" . esc_attr($field_value) . 
+		"' placeholder='" . esc_attr($field_placeholder) .  
+		"' />" . wp_kses($field_description, $allowed_html);
 }
 
 function fsst_get_settings_image_field_html($args) {
@@ -378,15 +393,21 @@ function fsst_get_settings_image_field_html($args) {
 	} else {
 		$field_markup = "
 			<a href='#' class='button image-upload'>Upload Image</a>
-			<a href='#' class='button image-remove' style='display: none;'>Remove Image</a>
+			<a href='#' class='button image-remove'>Remove Image</a>
 		";
 	}
 
-	echo "
-			{$field_markup}
-			<input id='field-" . esc_attr($field_id) . "' type='hidden' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' data-url-field-id='field-" . esc_attr($url_field_id) . "' />
-			{$field_description}
-	";
+	$allowed_html = [
+		'a' => ['class' => true, 'href' => true],
+		'img' => ['class' => true, 'src' => true],
+		'div' => ['class' => true]
+	];
+	echo wp_kses($field_markup, $allowed_html) . 
+		"<input id='field-" . esc_attr($field_id) .
+		 "' type='hidden' name='" . esc_attr($field_name) . 
+		 "' value='" . esc_attr($field_value) . 
+		 "' data-url-field-id='field-" . esc_attr($url_field_id) . 
+		 "' />" . wp_kses($field_description, $allowed_html);
 }
 
 function fsst_get_settings_select_field_html($args) {
@@ -412,12 +433,19 @@ function fsst_get_settings_select_field_html($args) {
 	$field_option_none_label = isset($args['post_id']) ? 'Global Default' : 'None';
 	$field_option_none = ($field_value) ? "<option value=''>" . esc_attr($field_option_none_label) . "</option>" : "<option value='' selected>" . esc_attr($field_option_none_label) . "</option>";
 
-	echo "
-		<select id='field-" . esc_attr($field_id) . "' class='select2' name='" . esc_attr($field_name) . "' data-placeholder='" . esc_attr($field_placeholder) . "'>
-			{$field_option_none}
-			{$field_options_markup}
-		</select>
-	";
+	$allowed_html = [
+		'option' => [
+			'value' => true,
+			'selected' => true
+		]
+	];
+
+	echo "<select id='field-" . esc_attr($field_id) . 
+		"' class='select2' name='" . esc_attr($field_name) . 
+		"' data-placeholder='" . esc_attr($field_placeholder) . 
+		"'>" . wp_kses($field_option_none, $allowed_html) .
+		wp_kses($field_options_markup, $allowed_html) .
+		"</select>";
 }
 
 function fsst_get_settings_text_field_html($args) {
@@ -433,10 +461,16 @@ function fsst_get_settings_text_field_html($args) {
 		$field_description = "<div class='description'>" . wp_kses_post($field_description) . "</div>";
 	}
 
-	echo "		
-		<input id='field-" . esc_attr($field_id) . "' type='text' name='" . esc_attr($field_name) . "' placeholder='" . esc_attr($field_placeholder) . "' value='" . esc_attr($field_value) . "' />
-		{$field_description}
-	";
+	$allowed_html = [
+		'div' => [
+			'class' => true
+		]
+	];
+	echo "<input id='field-" . esc_attr($field_id) . 
+		"' type='text' name='" . esc_attr($field_name) . 
+		"' placeholder='" . esc_attr($field_placeholder) . 
+		"' value='" . esc_attr($field_value) . 
+		"' />" . wp_kses($field_description, $allowed_html);
 }
 
 // Not doing anything with this

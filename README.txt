@@ -22,4 +22,4 @@ You can optionally override the settings for individual content.  You can find t
 
 This plugin makes calls to the sharethumb API, at the following endpoints: https://api.sharethumb.app/ and https://use.sharethumb.io/.  When you save your global settings (after entering your correct API key & validate your domain), it will contact the relevant endpoint to update your remote settings for the ShareThumb service.  Additionally, when you view an overrideable post, it will attempt to fetch the up-to-date version of the ShareThumb thumbnail using your override settings, via the relevant endpoint.
 
-For more information, see the [ShareThumb website](https://sharethumb.io/) and the [ShareThumb Terms of Use](https://www.4sitestudios.com/products/sharethumb/legal/).
+For more information, see the ShareThumb website (https://sharethumb.io/) and the ShareThumb Terms of Use (https://www.4sitestudios.com/products/sharethumb/legal/).

@@ -173,7 +173,6 @@ function fsst_get_overrides_image_field_html($field_label, $field_name, $configu
     if($field_value) {
         $image_url = wp_get_attachment_image_url($field_value, 'medium');
         if($image_url) {
-            $image_url = $image_url;
             $field_markup = "               
                 <a href='#' class='button image-upload'><img src='" . esc_url($image_url) . "' /></a>
                 <a href='#' class='button image-remove'>Remove Image</a>
@@ -182,7 +181,7 @@ function fsst_get_overrides_image_field_html($field_label, $field_name, $configu
     } else {
         $field_markup = "
             <a href='#' class='button image-upload'>Upload Image</a>
-            <a href='#' class='button image-remove' style='display: none;'>Remove Image</a>
+            <a href='#' class='button image-remove hide-button'>Remove Image</a>
         ";
     }
 

@@ -53,3 +53,6 @@
 .post-configuration-wrapper .sharethumb-settings-row.custom-theme.show {
 	display: block;
 }
+.post-configuration-wrapper .hide-button {
+	display: none;
+}

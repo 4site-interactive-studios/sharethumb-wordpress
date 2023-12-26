@@ -3,6 +3,19 @@
 	global $post;
 	$configuration = fsst_get_post_configuration($post->ID);
 	wp_nonce_field('sharethumb_metabox', 'sharethumb_nonce'); 
+	$allowed_html = [
+		'label'		=> ['class' => true, 'id' => true, 'style' => true, 'for' => true],
+		'input'		=> ['class' => true, 'id' => true, 'style' => true, 'name' => true, 'type' => true, 'value' => true, 'placeholder' => true, 'data-jscolor' => true],
+		'select'	=> ['class' => true, 'id' => true, 'style' => true, 'name' => true, 'data-placeholder' => true],
+		'option'	=> ['class' => true, 'id' => true, 'style' => true, 'value' => true, 'selected' => true],
+		'a'			=> ['class' => true, 'id' => true, 'style' => true, 'href' => true],
+		'img'		=> ['class' => true, 'id' => true, 'style' => true, 'src' => true]
+	];
+	$allowed_protocols = [
+		'http',
+		'https',
+		'urn'
+	];
 ?>
 <div class='post-configuration-wrapper'>
 	<?php if($post->ID): ?>
@@ -31,36 +44,36 @@
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_image_field_html('Logo', 'fsst_logo', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_image_field_html('Logo', 'fsst_logo', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_image_field_html('Icon', 'fsst_icon', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_image_field_html('Icon', 'fsst_icon', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 
 	<div class='sharethumb-settings-row theme'>
-		<?php echo fsst_get_overrides_select_field_html('Theme', 'fsst_theme', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_select_field_html('Theme', 'fsst_theme', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 
 	<div class='sharethumb-settings-row custom-theme'>
-		<?php echo fsst_get_overrides_text_field_html('Custom Theme', 'fsst_theme_custom', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_text_field_html('Custom Theme', 'fsst_theme_custom', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_select_field_html('Font', 'fsst_font', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_select_field_html('Font', 'fsst_font', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Font Color', 'fsst_font_color', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Font Color', 'fsst_font_color', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Background Color', 'fsst_background_color', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Background Color', 'fsst_background_color', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Accent Color', 'fsst_accent_color', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Accent Color', 'fsst_accent_color', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo fsst_get_overrides_color_picker_field_html('Secondary Color', 'fsst_secondary_color', $configuration); ?>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Secondary Color', 'fsst_secondary_color', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 </div>
 <script>

@@ -55,9 +55,9 @@ jQuery(function ($) {
           const url = attachment.sizes.hasOwnProperty("thumbnail")
             ? attachment.sizes.thumbnail.url
             : attachment.url;
-          button.html('<img src="' + url + '">'); // add image instead of "Upload Image"
-          button.next().show(); // show "Remove image" link
-          button.next().next().val(attachment.id); // Populate the hidden field with image ID
+          button.html('<img src="' + url + '">');   // add image instead of "Upload Image"
+          button.next().removeClass('hide-button'); // show "Remove image" link
+          button.next().next().val(attachment.id);  // Populate the hidden field with image ID
 
           const url_field_id = button.next().next().data('url-field-id');
           if(url_field_id) {
@@ -90,6 +90,6 @@ jQuery(function ($) {
     e.preventDefault();
     const button = $(this);
     button.next().val(""); // emptying the hidden field
-    button.hide().prev().addClass("button").html("Upload image"); // replace the image with text
+    button.addClass('hide-button').prev().addClass("button").html("Upload image"); // replace the image with text
   });
 });

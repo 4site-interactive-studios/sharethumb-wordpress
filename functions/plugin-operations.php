@@ -14,8 +14,8 @@ if(!defined('ABSPATH')) { exit; }
 
 
 // Activation & Deactivation
-register_activation_hook(fsst_plugin_path() . 'index.php', 'fsst_activate');
-register_deactivation_hook(fsst_plugin_path() . 'index.php', 'fsst_deactivate');
+register_activation_hook(fsst_plugin_path() . 'sharethumb.php', 'fsst_activate');
+register_deactivation_hook(fsst_plugin_path() . 'sharethumb.php', 'fsst_deactivate');
 
 function fsst_activate() {
     update_option('fsst_settings', [

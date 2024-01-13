@@ -6,6 +6,8 @@
  * Description: Configure the ShareThumb service directly via your own website.
  * Author: 4Site Interactive Studios
  * Author URI: https://4sitestudios.com
+ * License: GPLv2
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 // Exit if accessed directly

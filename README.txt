@@ -1,5 +1,4 @@
-=== Automatic Social Preview Images Plugin - 4Site ShareThumb ===
-
+=== 4Site ShareThumb - Branded Social Preview OG Image Plugin ===
 Contributors: 4sitestudios
 Tags: og image, social media image, link preview, post preview, facebook
 Requires at least: 5.9
@@ -14,6 +13,7 @@ Free social share images for unlimited pages using customizable OG image templat
 == Description ==
 
 Select one of our optimized post preview image themes and then customize it to create high-performing social share images. ShareThumb grabs the title and the featured image from the post and you define everything else:
+
 * Layout (Theme)
 * Font
 * Font Color
@@ -26,7 +26,10 @@ Select one of our optimized post preview image themes and then customize it to c
 When links to your website are shared on iMessage, Facebook, LinkedIn or any number of platforms, ShareThumb generates the custom social cards that you configured. 
 
 You can set up our social media image generator to create social cards for every page on your website, or you can specify the specific post types that you want to generate the social media preview images for. You can also create custom og:images for individual posts. 
-Here’s a (one-minute video)[https://www.youtube.com/watch?v=rf6CSJB9-rQ] about the benefits of ShareThumb.
+
+Here’s a one-minute video about our plugin:
+
+https://www.youtube.com/watch?v=rf6CSJB9-rQ
 
 == Screenshots ==
 
@@ -40,7 +43,6 @@ Here’s a (one-minute video)[https://www.youtube.com/watch?v=rf6CSJB9-rQ] about
 1. Go to the **Plugins** page and activate the plugin.
 
 -- Simple Configuration -- 
-
 In order to use ShareThumb, you simply install the plugin, select your theme from a dropdown, and you're done! Your link preview images will appear whenever someone shares links to your site on a platform like Twitter or Slack that supports open graph images.  It just takes five minutes to configure. You don’t need to register. There is no trial period. We won’t ask you for a credit card. And there is no limit to the number of share thumbs you can generate for your WordPress site. In fact there’s no limit to the number of sites you can use ShareThumb on.
 
 == Why 4Site ShareThumb is Unique == 
@@ -53,9 +55,11 @@ We require that you register in order to access these features so we can verify 
 
 After registering and adding your API Key to the WordPress Plugin Settings, ShareThumb will automatically regenerate your thumbnail every time you update your post title or ShareThumb Settings.
 
-Here’s a (five-minute video)[https://www.youtube.com/watch?v=NkY5UrIOUYU] that shows you how to register and verify ownership of your site. The process itself only takes a couple minutes. 
+Here’s a five-minute video that shows you how to register and verify ownership of your site. The process itself only takes a couple minutes. 
 
--- Pro Features -- 
+https://www.youtube.com/watch?v=NkY5UrIOUYU
+
+== Pro Features == 
 
 After you register, you have the option to upgrade to a paid account. With our Pro plan, you can collect statistics on where your links are shared and how many times they are shared. This is information that is not available anywhere else - your site doesn’t collect this data and Google Analytics can’t collect it. 
 
@@ -71,7 +75,7 @@ You can ignore these fields and still use ShareThumb. But if you want to registe
 
 = Can I create my own templates? =
 
-We are working hard on that feature and hope to release it soon. [Send us an email](mailto:support@4sitestudios.com?subject=Let me know when custom themes are supported by ShareThumb) if you would like to be notified when that feature is ready. 
+We are working hard on that feature and hope to release it soon. Send us an email at support@4sitestudios.com if you would like to be notified when that feature is ready. 
 
 = Who are you guys anyway? =
 
@@ -80,15 +84,12 @@ We are working hard on that feature and hope to release it soon. [Send us an ema
 == Changelog ==
 
 = 1.0 =
-
 * Our first public release!
 
 == Upgrade Notice ==
 
 = 1.0 =
-
 Start using 4Site ShareThumb today.
 
 == For more information == 
-
-Visit the (ShareThumb website)[https://www.4sitestudios.com/products/sharethumb/].
+Visit the [ShareThumb website](https://www.4sitestudios.com/products/sharethumb/).

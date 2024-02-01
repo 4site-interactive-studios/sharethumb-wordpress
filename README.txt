@@ -31,12 +31,6 @@ Here’s a one-minute video about our plugin:
 
 https://www.youtube.com/watch?v=rf6CSJB9-rQ
 
-== Screenshots ==
-
-1. Configure and style your share thumbs across all the pages on your site.
-2. Override the site-wide styles to configure your share thumbs for an individual post.
-3. Register to manage all your share thumbs, across all your sites, in one convenient dashboard.
-
 == Installation ==
 
 1. Upload the plugin folder to your /wp-content/plugins/ folder.
@@ -93,3 +87,8 @@ Start using 4Site ShareThumb today.
 
 == For more information == 
 Visit the [ShareThumb website](https://www.4sitestudios.com/products/sharethumb/).
+
+== Screenshots ==
+1. Configure and style your share thumbs across all the pages on your site.
+2. Override the site-wide styles to configure your share thumbs for an individual post.
+3. Register to manage all your share thumbs, across all your sites, in one convenient dashboard.

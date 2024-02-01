@@ -1,13 +1,13 @@
 === 4Site ShareThumb - Branded Social Preview OG Image Plugin ===
+
 Contributors: 4sitestudios
 Tags: og image, social media image, link preview, post preview, facebook
 Requires at least: 5.9
 Tested up to: 6.4.2
-Stable tag: 1.1.3
+Stable tag: 1.1.2
 Requires PHP: 7.4
 License: GPLv2
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-
 Free social share images for unlimited pages using customizable OG image templates. Upgrade to optimize with AI and get sharing analytics.
 
 == Description ==
@@ -31,13 +31,26 @@ Here’s a one-minute video about our plugin:
 
 https://www.youtube.com/watch?v=rf6CSJB9-rQ
 
+
+== Screenshots ==
+
+1. Configure and style your share thumbs across all the pages on your site.
+
+2. Override the site-wide styles to configure your share thumbs for an individual post.
+
+3. Register to manage all your share thumbs, across all your sites, in one convenient dashboard.
+
+
 == Installation ==
 
 1. Upload the plugin folder to your /wp-content/plugins/ folder.
+
 1. Go to the **Plugins** page and activate the plugin.
 
 -- Simple Configuration -- 
+
 In order to use ShareThumb, you simply install the plugin, select your theme from a dropdown, and you're done! Your link preview images will appear whenever someone shares links to your site on a platform like Twitter or Slack that supports open graph images.  It just takes five minutes to configure. You don’t need to register. There is no trial period. We won’t ask you for a credit card. And there is no limit to the number of share thumbs you can generate for your WordPress site. In fact there’s no limit to the number of sites you can use ShareThumb on.
+
 
 == Why 4Site ShareThumb is Unique == 
 
@@ -53,6 +66,7 @@ Here’s a five-minute video that shows you how to register and verify ownership
 
 https://www.youtube.com/watch?v=NkY5UrIOUYU
 
+
 == Pro Features == 
 
 After you register, you have the option to upgrade to a paid account. With our Pro plan, you can collect statistics on where your links are shared and how many times they are shared. This is information that is not available anywhere else - your site doesn’t collect this data and Google Analytics can’t collect it. 
@@ -60,6 +74,7 @@ After you register, you have the option to upgrade to a paid account. With our P
 You can take advantage of artificial intelligence to highlight power words in the post titles that appear superimposed over your image. We call these “smart thumbs”:)
 
 Other features we will be rolling out soon include the ability to add AI-optimized headlines and AI-generated images that are custom made for your content and optimized to grab people’s attention. We also will be offering the ability to create your own custom thumbnail themes (templates). 
+
 
 == Frequently Asked Questions ==
 
@@ -75,20 +90,20 @@ We are working hard on that feature and hope to release it soon. Send us an emai
 
 [4Site Studios](https://4sitestudios.com/ "4Site Studios") is a small web development agency located in Washington, DC. We’ve been around for 20 years, providing custom WordPress services, mostly to nonprofits. This is the first plugin that we’ve posted for the community (though we’ve built countless plugins for our clients’ sites). 
 
+
 == Changelog ==
 
 = 1.0 =
+
 * Our first public release!
 
 == Upgrade Notice ==
 
 = 1.0 =
+
 Start using 4Site ShareThumb today.
 
-== For more information == 
-Visit the [ShareThumb website](https://www.4sitestudios.com/products/sharethumb/).
 
-== Screenshots ==
-1. Configure and style your share thumbs across all the pages on your site.
-2. Override the site-wide styles to configure your share thumbs for an individual post.
-3. Register to manage all your share thumbs, across all your sites, in one convenient dashboard.
+== For more information == 
+
+Visit the [ShareThumb website](https://www.4sitestudios.com/products/sharethumb/).

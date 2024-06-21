@@ -22,10 +22,12 @@ function fsst_api_get_permitted_keys() {
 		'theme', 
 		'theme_custom', 
 		'font',
-		'font_color',
-		'background_color',
-		'accent_color',
-		'secondary_color',
+		'highlight_font',
+		'dark_theme_font_color' => '',	
+		'dark_theme_bg_color' => '',	
+		'light_theme_font_color' => '',	
+		'light_theme_bg_color' => '',	
+		'accent_color' => '',	
 		'title'
 	];
 }
@@ -47,25 +49,33 @@ function fsst_api_validate_key($api_key) {
 }
 
 // Fetch the drop-down options from the ShareThumb public endpoint
-function fsst_api_fetch_options($name) {
+function fsst_api_fetch_options($name, $api_key = '') {
     $options = [];
-    if($name === 'font') {
+    if($name === 'font' || $name === 'highlight_font') {
         $response = wp_remote_get(FSST_FONT_URL);
         if(!is_wp_error($response)) {
-			$json_encoded_data = wp_remote_retrieve_body($response);
+						$json_encoded_data = wp_remote_retrieve_body($response);
             $font_names = json_decode($json_encoded_data);
             foreach($font_names as $font_name) {
                 $options[$font_name] = $font_name;
             }
         }
     } else if($name === 'theme') {
-        $response = wp_remote_get(FSST_THEME_URL);
+				// this endpoint supports an optional API Key to pull down private themes
+				$endpoint_url = FSST_THEME_URL;
+				if($api_key) {
+					$query_string = http_build_query(['sharethumb-api-key' => $api_key]);
+					$endpoint_url .= str_contains($endpoint_url, '?') ? '&' : '?';
+					$endpoint_url .= $query_string;
+				}
+
+        $response = wp_remote_get($endpoint_url);
         if(!is_wp_error($response)) {
         	$json_encoded_data = wp_remote_retrieve_body($response);
-            $themes = json_decode($json_encoded_data);
-            foreach($themes as $theme) {
-                $options[$theme->name] = $theme->key;
-            }
+					$themes = json_decode($json_encoded_data);
+					foreach($themes as $theme) {
+							$options[$theme->key] = $theme->name;
+					}
         }
     }
     return $options;
@@ -173,6 +183,7 @@ function fsst_api_save_global_configuration($configuration) {
 	}
 
 	$json_configuration = wp_json_encode($configuration);
+	error_log('test: ' . print_r($json_configuration,true));
 	$response = wp_remote_post(FSST_SETTINGS_URL, [
 		'method' => 'PUT',
 		'headers' => [
@@ -181,15 +192,19 @@ function fsst_api_save_global_configuration($configuration) {
 		],
 		'body' => $json_configuration
 	]);
+	
 
 	if($response && !is_wp_error($response)) {
 		$encoded_response = json_decode(wp_remote_retrieve_body($response));
+		error_log('test2: ' . print_r($encoded_response,true));
 
 		if(!empty($encoded_response->statusCode) && $encoded_response->statusCode == 200) {
 			return true;
-		} else if(!empty($encoded_response->message)) {
+		} else if(!empty($encoded_response->message)) {			
 			return $encoded_response->message;
 		}
+	} else {
+		error_log('test3: ' . print_r($response,true));
 	}
 
 	return false;

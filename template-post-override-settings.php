@@ -9,7 +9,8 @@
 		'select'	=> ['class' => true, 'id' => true, 'style' => true, 'name' => true, 'data-placeholder' => true],
 		'option'	=> ['class' => true, 'id' => true, 'style' => true, 'value' => true, 'selected' => true],
 		'a'			=> ['class' => true, 'id' => true, 'style' => true, 'href' => true],
-		'img'		=> ['class' => true, 'id' => true, 'style' => true, 'src' => true]
+		'img'		=> ['class' => true, 'id' => true, 'style' => true, 'src' => true],
+		'div'    => ['class' => true],
 	];
 	$allowed_protocols = [
 		'http',
@@ -64,16 +65,22 @@
 	</div>
 
 	<div class='sharethumb-settings-row'>
-		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Font Color', 'fsst_font_color', $configuration), $allowed_html, $allowed_protocols); ?>
+		<?php echo wp_kses(fsst_get_overrides_select_field_html('Highlight Font', 'fsst_highlight_font', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
-		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Background Color', 'fsst_background_color', $configuration), $allowed_html, $allowed_protocols); ?>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Light Theme Font Color', 'fsst_light_theme_font_color', $configuration), $allowed_html, $allowed_protocols); ?>
+	</div>
+	<div class='sharethumb-settings-row'>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Light Theme Background Color', 'fsst_light_theme_bg_color', $configuration, true), $allowed_html, $allowed_protocols); ?>
+	</div>
+	<div class='sharethumb-settings-row'>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Dark Theme Font Color', 'fsst_dark_theme_font_color', $configuration), $allowed_html, $allowed_protocols); ?>
+	</div>
+	<div class='sharethumb-settings-row'>
+		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Dark Theme Background Color', 'fsst_dark_theme_bg_color', $configuration, true), $allowed_html, $allowed_protocols); ?>
 	</div>
 	<div class='sharethumb-settings-row'>
 		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Accent Color', 'fsst_accent_color', $configuration), $allowed_html, $allowed_protocols); ?>
-	</div>
-	<div class='sharethumb-settings-row'>
-		<?php echo wp_kses(fsst_get_overrides_color_picker_field_html('Secondary Color', 'fsst_secondary_color', $configuration), $allowed_html, $allowed_protocols); ?>
 	</div>
 </div>
 <script>

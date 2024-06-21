@@ -40,7 +40,10 @@
 .sharethumb-settings-row img {
 	max-height: 150px;
 }
-
+.sharethumb-settings-row #field-theme-preview {
+	display: none;
+	padding-top: 20px;
+}
 
 .post-configuration-wrapper .sharethumb-settings-row {
 	margin-bottom: 10px;
@@ -58,4 +61,24 @@
 .sharethumb-settings-row .hide-button,
 .post-configuration-wrapper .hide-button {
 	display: none;
+}
+
+
+
+.sharethumb-settings-image .image-remove {
+	display: none;
+}
+.sharethumb-settings-image .has-image .image-remove {
+	display: inline-block;
+}
+.sharethumb-settings-row .color-ratio-message {
+	width: 205px;
+	font-size: 12px;
+	padding-top: 4px;
+	color: maroon;
+	font-weight: bold;
+}
+.sharethumb-settings-row .color-ratio-message.good-ratio {
+	color: green;
+	font-weight: normal;
 }

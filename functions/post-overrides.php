@@ -23,7 +23,7 @@ if(!defined('ABSPATH')) { exit; }
 
 
 add_action('add_meta_boxes',		'fsst_add_post_override_boxes', 10, 2);
-add_action('save_post',				'fsst_save_post_override_configuration', PHP_INT_MAX, 3);
+add_action('save_post',					'fsst_save_post_override_configuration', PHP_INT_MAX, 3);
 
 function fsst_get_post_configuration($post_id) {
 	$post_configuration = get_post_meta($post_id, 'sharethumb');
@@ -58,12 +58,17 @@ function fsst_render_metabox_html($post) {
 	wp_enqueue_style('select2', plugins_url('../assets/select2.min.css', __FILE__), [], '4.1.0-rc.0');
 	wp_enqueue_script('select2', plugins_url('../assets/select2.min.js', __FILE__), ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
 	wp_enqueue_script('jscolor', plugins_url('../assets/jscolor.min.js', __FILE__), [], '2.5.1', ['in_footer' => true]);
-	wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
 	wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
+	wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
+		
+	$site_url = preg_replace("(^https?://)", "", get_site_url());
+	wp_add_inline_script('settings-page-js', "
+			const theme_url = '" . FSST_PREVIEW_URL . "';
+			const domain = '" . $site_url . "';
+		", 'before');
 
 	include fsst_plugin_path() . '/template-post-override-settings.php';
 }
-
 
 function fsst_sanitize_post_overrides($user_submitted_overrides) {
 	$retval = [];
@@ -80,13 +85,15 @@ function fsst_sanitize_post_overrides($user_submitted_overrides) {
 			case 'fsst_theme':
 			case 'fsst_theme_custom':
 			case 'fsst_font':
+			case 'fsst_highlight_font':
 				$configuration_key = str_replace('fsst_', '', $key);
 				$sanitized_value = sanitize_text_field($value);
 				break;
-			case 'fsst_font_color':
-			case 'fsst_background_color':
+			case 'fsst_light_theme_font_color':
+			case 'fsst_light_theme_bg_color':
+			case 'fsst_dark_theme_font_color':
+			case 'fsst_dark_theme_bg_color':
 			case 'fsst_accent_color':	
-			case 'fsst_secondary_color':
 				$configuration_key = str_replace('fsst_', '', $key);
 				$sanitized_value = sanitize_hex_color($value);
 				break;
@@ -193,7 +200,7 @@ function fsst_get_overrides_image_field_html($field_label, $field_name, $configu
 }
 
 function fsst_get_overrides_select_field_html($field_label, $field_name, $configuration) {
-	$configuration_key = str_replace('fsst_', '', $field_name);
+		$configuration_key = str_replace('fsst_', '', $field_name);
     $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
     $options = fsst_get_select_options($configuration_key);
 
@@ -233,13 +240,13 @@ function fsst_get_overrides_select_field_html($field_label, $field_name, $config
 }
 
 // Functionality for this field is supplemented by the jscolor script
-function fsst_get_overrides_color_picker_field_html($field_label, $field_name, $configuration) {
+function fsst_get_overrides_color_picker_field_html($field_label, $field_name, $configuration, $show_message_field = false) {
 	$configuration_key = str_replace('fsst_', '', $field_name);
-    $field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
-    return "
-        <label for='field-" . esc_attr($field_name) . "'>" . esc_html($field_label) . "</label>
-        <input id='field-" . esc_attr($field_name) . "' data-jscolor='{required:false}' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' placeholder='Select Color' />
-    ";
+	$field_value = isset($configuration[$configuration_key]) ? $configuration[$configuration_key] : '';
+	return "
+			<label for='field-" . esc_attr($configuration_key) . "'>" . esc_html($field_label) . "</label>
+			<input id='field-" . esc_attr($configuration_key) . "' data-jscolor='{required:false}' name='" . esc_attr($field_name) . "' value='" . esc_attr($field_value) . "' placeholder='Select Color' />" .
+			($show_message_field ? "<div class='color-ratio-message'></div>" : "");
 }
 
 
@@ -250,11 +257,13 @@ function fsst_get_default_post_configuration() {
 		'icon' => 0,
 		'theme' => '',		
 		'theme_custom' => '',
-		'font' => '',		
-		'font_color' => '',	
-		'background_color' => '',	
+		'font' => '',	
+		'highlight_font' => '',
+		'dark_theme_font_color' => '',	
+		'dark_theme_bg_color' => '',	
+		'light_theme_font_color' => '',	
+		'light_theme_bg_color' => '',	
 		'accent_color' => '',		
-		'secondary_color' => '',	
 		'icon_url' => '',	
 		'logo_url' => ''
 	];

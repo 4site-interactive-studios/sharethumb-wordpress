@@ -55,23 +55,29 @@ function fsst_insert_metatags() {
 	if(!empty($st_config['font'])) {
 		$metatags .= "<meta property='st:font' content='" . esc_html($st_config['font']) ."'>\n";
 	}
+	if(!empty($st_config['highlight_font'])) {
+		$metatags .= "<meta property='st:highlight_font' content='" . esc_html($st_config['highlight_font']) ."'>\n";
+	}
 	if(!empty($st_config['theme'])) {
 		$metatags .= "<meta property='st:theme' content='" . esc_html($st_config['theme']) ."'>\n";
 		if($st_config['theme'] == 'custom' && !empty($st_config['theme_custom'])) {
 			$metatags .= "<meta property='st:theme_custom' content='" . esc_html($st_config['theme_custom']) ."'>\n";
 		}
 	}
-	if(!empty($st_config['font_color'])) {
-		$metatags .= "<meta property='st:font_color' content='" . esc_html($st_config['font_color']) ."'>\n";
+	if(!empty($st_config['light_theme_font_color'])) {
+		$metatags .= "<meta property='st:light_theme_font_color' content='" . esc_html($st_config['light_theme_font_color']) ."'>\n";
 	}
-	if(!empty($st_config['background_color'])) {
-		$metatags .= "<meta property='st:background_color' content='" . esc_html($st_config['background_color']) ."'>\n";
+	if(!empty($st_config['light_theme_bg_color'])) {
+		$metatags .= "<meta property='st:light_theme_bg_color' content='" . esc_html($st_config['light_theme_bg_color']) ."'>\n";
+	}
+	if(!empty($st_config['dark_theme_font_color'])) {
+		$metatags .= "<meta property='st:dark_theme_font_color' content='" . esc_html($st_config['dark_theme_font_color']) ."'>\n";
+	}
+	if(!empty($st_config['dark_theme_bg_color'])) {
+		$metatags .= "<meta property='st:dark_theme_bg_color' content='" . esc_html($st_config['dark_theme_bg_color']) ."'>\n";
 	}
 	if(!empty($st_config['accent_color'])) {
 		$metatags .= "<meta property='st:accent_color' content='" . esc_html($st_config['accent_color']) ."'>\n";
-	}
-	if(!empty($st_config['secondary_color'])) {
-		$metatags .= "<meta property='st:secondary_color' content='" . esc_html($st_config['secondary_color']) ."'>\n";
 	}
 
 	$featured_image_url = get_the_post_thumbnail_url(null, 'large');

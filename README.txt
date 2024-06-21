@@ -3,7 +3,7 @@
 Contributors: 4sitestudios
 Tags: og image, social media image, link preview, post preview, facebook
 Requires at least: 5.9
-Tested up to: 6.4.2
+Tested up to: 6.5.3
 Stable tag: 1.2
 Requires PHP: 7.4
 License: GPLv2

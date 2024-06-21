@@ -93,6 +93,14 @@ We are working hard on that feature and hope to release it soon. Send us an emai
 
 == Changelog ==
 
+= 1.2 =
+
+Implemented support for latest version of sharethumb service's updated fieldset.
+
+- Removed fields: background_color, font_color, secondary_color
+- Added fields: highlight_font, light_theme_font_color, dark_theme_font_color, light_theme_bg_color, dark_theme_bg_color
+- Added color contrast check for theme color fields.
+
 = 1.0 =
 
 * Our first public release!

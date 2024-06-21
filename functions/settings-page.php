@@ -51,8 +51,8 @@ function fsst_enqueue_scripts($hook) {
 		wp_enqueue_style('select2', plugins_url('../assets/select2.min.css', __FILE__), [], '4.1.0-rc.0');
 		wp_enqueue_script('select2', plugins_url('../assets/select2.min.js', __FILE__), ['jquery'], '4.1.0-rc.0', ['in_footer' => true]);
 		wp_enqueue_script('jscolor', plugins_url('../assets/jscolor.min.js', __FILE__), [], '2.5.1', ['in_footer' => true]);
-		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
-		wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
+		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.2', ['in_footer' => true]);
+		wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.2');
 		
 		$site_url = preg_replace("(^https?://)", "", get_site_url());
 		wp_add_inline_script('settings-page-js', "

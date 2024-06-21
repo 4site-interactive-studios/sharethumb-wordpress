@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ShareThumb
- * Version: 1.1.3
+ * Version: 1.2
  * Plugin URI: https://sharethumb.io/
  * Description: Configure the ShareThumb service directly via your own website.
  * Author: 4Site Interactive Studios
@@ -13,13 +13,13 @@
 // Exit if accessed directly
 if(!defined('ABSPATH')) { exit; }
 
-
 define('FSST_FONT_URL', 'https://api.sharethumb.app/fonts');
 define('FSST_THEME_URL', 'https://api.sharethumb.app/themes');
 define('FSST_SETTINGS_URL', 'https://use.sharethumb.io/save-settings');
 define('FSST_REGENERATE_THUMBNAIL_URL', 'https://use.sharethumb.io/regenerate-thumb');
 define('FSST_GET_THUMBNAIL_ID_URL', 'https://use.sharethumb.io/get-thumb-id');
 define('FSST_VALIDATE_KEY_URL', 'https://use.sharethumb.io/validate-api-key');
+define('FSST_PREVIEW_URL', 'https://use.sharethumb.io/preview');
 
 // These base URLs must end in a slash
 define('FSST_IMAGE_BASE_URL', 'https://use.sharethumb.io/image/');  // Used for override image preview

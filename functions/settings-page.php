@@ -53,7 +53,12 @@ function fsst_enqueue_scripts($hook) {
 		wp_enqueue_script('jscolor', plugins_url('../assets/jscolor.min.js', __FILE__), [], '2.5.1', ['in_footer' => true]);
 		wp_enqueue_script('settings-page-js', plugins_url('../settings-page.js', __FILE__), ['jquery', 'jscolor', 'select2'], '1.0', ['in_footer' => true]);
 		wp_enqueue_style('settings-page-css', plugins_url('../settings-page.css', __FILE__), [], '1.0');
-
+		
+		$site_url = preg_replace("(^https?://)", "", get_site_url());
+		wp_add_inline_script('settings-page-js', "
+				const theme_url = '" . FSST_PREVIEW_URL . "';
+				const domain = '" . $site_url . "';
+			", 'before');
 	}
 }
 
@@ -140,6 +145,20 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
+		'fsst_highlight_font',
+		__('Highlight Font', 'sharethumb'),
+		'fsst_get_settings_select_field_html',
+		'fsst_settings',
+		'fsst_section_general',
+		[
+			'placeholder' => 'Font',
+			'label_for' => 'highlight_font',
+			'class' => 'sharethumb-settings-row font',
+			'fetch_options_key' => 'font'
+		]
+	);
+
+	add_settings_field(
 		'fsst_logo',
 		__('Logo', 'sharethumb'),
 		'fsst_get_settings_image_field_html',
@@ -148,7 +167,7 @@ function fsst_register_settings() {
 		[
 			'placeholder' => 'Logo',
 			'label_for' => 'logo',
-			'class' => 'sharethumb-settings-row',
+			'class' => 'sharethumb-settings-row sharethumb-settings-image',
 			'url_field_id' => 'logo_url'
 		]
 	);
@@ -174,7 +193,7 @@ function fsst_register_settings() {
 		[
 			'placeholder' => 'Icon',
 			'label_for' => 'icon',
-			'class' => 'sharethumb-settings-row',
+			'class' => 'sharethumb-settings-row sharethumb-settings-image',
 			'url_field_id' => 'icon_url'
 		]
 	);
@@ -192,53 +211,68 @@ function fsst_register_settings() {
 	);
 
 	add_settings_field(
-		'fsst_font_color',
-		__('Font Color', 'sharethumb'),
+		'fsst_light_theme_font_color',
+		__('Light Theme Font Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'fsst_settings',
 		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
-			'label_for' => 'font_color',
+			'label_for' => 'light_theme_font_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
 
 	add_settings_field(
-		'fsst_background_color',
-		__('Background Color', 'sharethumb'),
+		'fsst_light_theme_bg_color',
+		__('Light Theme Background Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'fsst_settings',
 		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
-			'label_for' => 'background_color',
+			'label_for' => 'light_theme_bg_color',
+			'class' => 'sharethumb-settings-row',
+			'include_message_field' => true
+		]
+	);
+
+	add_settings_field(
+		'fsst_dark_theme_font_color',
+		__('Dark Theme Font Color', 'sharethumb'),
+		'fsst_get_settings_color_field_html',
+		'fsst_settings',
+		'fsst_section_general',
+		[
+			'placeholder' => 'Select Color',
+			'label_for' => 'dark_theme_font_color',
 			'class' => 'sharethumb-settings-row'
+		]
+	);
+
+	add_settings_field(
+		'fsst_dark_theme_bg_color',
+		__('Dark Theme Background Color', 'sharethumb'),
+		'fsst_get_settings_color_field_html',
+		'fsst_settings',
+		'fsst_section_general',
+		[
+			'placeholder' => 'Select Color',
+			'label_for' => 'dark_theme_bg_color',
+			'class' => 'sharethumb-settings-row',
+			'include_message_field' => true
 		]
 	);
 
 	add_settings_field(
 		'fsst_accent_color',
-		__('Accent', 'sharethumb'),
+		__('Accent Color', 'sharethumb'),
 		'fsst_get_settings_color_field_html',
 		'fsst_settings',
 		'fsst_section_general',
 		[
 			'placeholder' => 'Select Color',
 			'label_for' => 'accent_color',
-			'class' => 'sharethumb-settings-row'
-		]
-	);
-
-	add_settings_field(
-		'fsst_secondary_color',
-		__('Secondary', 'sharethumb'),
-		'fsst_get_settings_color_field_html',
-		'fsst_settings',
-		'fsst_section_general',
-		[
-			'placeholder' => 'Select Color',
-			'label_for' => 'secondary_color',
 			'class' => 'sharethumb-settings-row'
 		]
 	);
@@ -274,7 +308,8 @@ function fsst_sanitize_configuration($configuration) {
 				if($result === false) {
 					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb'), 'error');
 				} else {
-					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb') . " {$result}", 'error');
+					$message = $result . '<pre>'.print_r($result,true).'</pre>';
+					add_settings_error('sharethumb_messages', 'sharethumb_message', __('Error updating settings on ShareThumb.', 'sharethumb') . " {$message}", 'error');
 				}
 			}
 
@@ -349,6 +384,7 @@ function fsst_get_settings_color_field_html($args) {
 	$field_id = $args['label_for'];
 	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : '';
 	$field_name = "fsst_settings[{$field_id}]";
+	$show_message_field = isset($args['include_message_field']) ? $args['include_message_field'] : false;
 
 	$field_description = isset($args['description']) ? $args['description'] : '';
 	if($field_description) {
@@ -364,12 +400,13 @@ function fsst_get_settings_color_field_html($args) {
 		"' data-jscolor='{required:false}' name='" . esc_attr($field_name) . 
 		"' value='" . esc_attr($field_value) . 
 		"' placeholder='" . esc_attr($field_placeholder) .  
-		"' />" . wp_kses($field_description, $allowed_html);
+		"' />" . 		
+		wp_kses($field_description, $allowed_html) .
+		($show_message_field ? "<div class='color-ratio-message'></div>" : '');
 }
 
 function fsst_get_settings_image_field_html($args) {
 	$configuration = get_option('fsst_settings');
-
 	$field_id = $args['label_for'];
 	$field_value = isset($configuration[$field_id]) ? $configuration[$field_id] : 0;
 	$field_name = "fsst_settings[{$field_id}]";
@@ -402,12 +439,14 @@ function fsst_get_settings_image_field_html($args) {
 		'img' => ['class' => true, 'src' => true],
 		'div' => ['class' => true]
 	];
-	echo wp_kses($field_markup, $allowed_html) . 
-		"<input id='field-" . esc_attr($field_id) .
+	echo 
+		 "<input id='field-" . esc_attr($field_id) .
 		 "' type='hidden' name='" . esc_attr($field_name) . 
 		 "' value='" . esc_attr($field_value) . 
 		 "' data-url-field-id='field-" . esc_attr($url_field_id) . 
-		 "' />" . wp_kses($field_description, $allowed_html);
+		 "' />" . 
+		 wp_kses($field_markup, $allowed_html) . 
+		 wp_kses($field_description, $allowed_html);
 }
 
 function fsst_get_settings_select_field_html($args) {
@@ -446,6 +485,10 @@ function fsst_get_settings_select_field_html($args) {
 		"'>" . wp_kses($field_option_none, $allowed_html) .
 		wp_kses($field_options_markup, $allowed_html) .
 		"</select>";
+
+		if($args['fetch_options_key'] == 'theme') {
+			echo "<img id='field-theme-preview' />";
+		}
 }
 
 function fsst_get_settings_text_field_html($args) {
@@ -510,7 +553,9 @@ function fsst_render_settings_page_html() {
 function fsst_get_select_options($name) {
     $choices = get_transient("fsst_{$name}_choices");
     if(empty($choices)) {
-        $choices = fsst_api_fetch_options($name);
+			$configuration = get_option('fsst_settings');
+			$api_key = isset($configuration['api_key']) ? $configuration['api_key'] : '';
+			$choices = fsst_api_fetch_options($name, $api_key);
         if(!empty($choices)) {
             set_transient("fsst_{$name}_choices", $choices, 600);
         }

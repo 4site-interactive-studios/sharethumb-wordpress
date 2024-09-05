@@ -38,19 +38,32 @@
 	font-size: 12px;	
 }
 .sharethumb-settings-row img {
-	max-height: 150px;
+	max-height: 75px;
 }
 .sharethumb-settings-row #field-theme-preview {
 	display: none;
 	padding-top: 20px;
+	height: auto;
+	width: 100%;
+	max-width: 200px;
+	max-height: unset;
 }
 
+.post-configuration-wrapper {
+	display: flex;
+	flex-wrap: wrap;
+}
 .post-configuration-wrapper .sharethumb-settings-row {
 	margin-bottom: 10px;
 	display: block;
+	max-width: 100%;
+}
+.post-configuration-wrapper .sharethumb-settings-row.half-width {
+	width: 50%;
 }
 .post-configuration-wrapper .sharethumb-settings-row label {
 	display: block;
+	font-weight: 500;
 }
 .post-configuration-wrapper .sharethumb-settings-row.custom-theme {
 	display: none;
@@ -63,14 +76,57 @@
 	display: none;
 }
 
+.sharethumb-settings-row.instructions {
+	font-style: italic;
+}
 
-
-.sharethumb-settings-image .image-remove {
+.sharethumb-settings-row .image-remove {
+	cursor: pointer;
 	display: none;
 }
-.sharethumb-settings-image .has-image .image-remove {
-	display: inline-block;
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove {
+	position: absolute;
+	right: 0;
+	top: 0;
+	display: block;
+	width: 20px;
+	height: 20px;
+	border: 1px solid darkred;
+	padding-bottom: 1px;
+	opacity: 0;
+	border-radius: 2px;
 }
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:before,
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:after {
+	content: '';
+	position: absolute;
+	top: 10px;
+	left: 0;
+	right: 0;
+	height: 2px;
+	background: darkred;	
+}
+
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:before {
+	transform: rotate(45deg);
+}
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:after {
+	transform: rotate(-45deg);
+}
+
+.sharethumb-settings-row .sharethumb-image-container.has-image:hover .image-remove {
+	opacity: 0.5;
+}
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:hover {
+	opacity: 1;
+	background-color: darkred;
+}
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:hover:before,
+.sharethumb-settings-row .sharethumb-image-container.has-image .image-remove:hover:after {
+	background: white;
+}
+
+
 .sharethumb-settings-row .color-ratio-message {
 	width: 205px;
 	font-size: 12px;
@@ -82,3 +138,10 @@
 	color: green;
 	font-weight: normal;
 }
+
+.sharethumb-image-container {
+	width: fit-content;
+	position: relative;
+}
+
+

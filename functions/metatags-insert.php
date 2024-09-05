@@ -18,7 +18,7 @@
 if(!defined('ABSPATH')) { exit; }
 
 
-add_action('wp_head',				'fsst_insert_metatags', 0);
+add_action('wp_head', 'fsst_insert_metatags', 0);
 
 // Capture all the metatags output by other plugins and WP Core, and then remove the metatags
 // we replace in the wp_head action.
@@ -46,6 +46,8 @@ function fsst_insert_metatags() {
 	if(!empty($st_config['dv_code']) && is_front_page()) {
 		$metatags .= "<meta name='sharethumb' content='" . esc_html($st_config['dv_code']) . "'>\n";
 	}
+	$plugin_version = fsst_plugin_data()['Version'];
+	$metatags .= "<meta property='st:version' content='" . esc_html($plugin_version) . "'>\n";
 	if(!empty($st_config['logo_url'])) {
 		$metatags .= "<meta property='st:logo' content='" . esc_url($st_config['logo_url']) ."'>\n";
 	}

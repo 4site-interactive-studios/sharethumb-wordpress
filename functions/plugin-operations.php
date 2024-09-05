@@ -60,7 +60,6 @@ function fsst_deactivate()
 {
     $configuration = get_option('fsst_settings');
     if (!empty($configuration['delete_on_uninstall'])) {
-        error_log('clearing all settings');
         // clear all data
         delete_option('fsst_settings');
         global $wpdb;

@@ -370,7 +370,7 @@ function fsst_register_settings()
 		[
 			'label_for' => 'delete_on_uninstall',
 			'class' => 'sharethumb-settings-row boolean',
-			'description' => 'If enabled, all settings will be deleted when the plugin is uninstalled.  If disabled, settings will be retained for future use.'
+			'description' => 'If enabled, the post-override settings will be deleted when the plugin is uninstalled.  If disabled, post-override settings will be retained for future use.'
 		]
 	);
 }
